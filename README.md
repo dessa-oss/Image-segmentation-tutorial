@@ -4,33 +4,6 @@
 </p>
 
 
-# What is Atlas?
-
-Atlas was built by our machine learning engineers to dramatically reduce the model development time, from the experimentation workflow to production.
-
-Here are some of the core features:
-
-**1. Experiment Management & Tracking:**
-
-Tag experiments and easily track hyperparameters, metrics, and artifacts such as images, GIFs, and audio clips in a web-based GUI to track the performance of your models
-
-**2. Job queuing & scheduling:**
-
-Launch and queue thousands of experiment variations to fully utilize your system resources
-
-**3. Collaboration & Bookkeeping:**
-
-Keep a journal of thoughts, ideas, and comments on projects
-
-**4. Reproducibility:**
-
-Maintain an audit trail of every single experiment you run, complete with code and any saved items
-
-<p float="left">
-  <img src="images/tracking.png" width=40% />
-  <img src="images/queue.png" width=40% /> 
-</p>
-
 # Start Guide
 
 **Prerequisites**
@@ -228,6 +201,35 @@ python hyperparameter_search.py
 ## Congrats!
 That's it! You've completed the Foundations Atlas Tutorial. Now, you should be able to go to the <a target="_blank" href="http://localhost:5555/projects">GUI</a> and see your running and completed jobs, compare model hyperparameters and performance, as well as view artifacts and training visualizations on TensorBoard.
 
-Do you have any thoughts or feedback for Foundations Atlas? Join the Dessa Slack community!
+Do you have any thoughts or feedback for Foundations Atlas? Join the Dessa Slack community! tiny.cc/dessa
+
+
+# What is Atlas?
+
+Atlas was built by our machine learning engineers to dramatically reduce the model development time, from the experimentation workflow to production.
+
+Here are some of the core features:
+
+**1. Experiment Management & Tracking:**
+
+Tag experiments and easily track hyperparameters, metrics, and artifacts such as images, GIFs, and audio clips in a web-based GUI to track the performance of your models
+
+**2. Job queuing & scheduling:**
+
+Launch and queue thousands of experiment variations to fully utilize your system resources
+
+**3. Collaboration & Bookkeeping:**
+
+Keep a journal of thoughts, ideas, and comments on projects
+
+**4. Reproducibility:**
+
+Maintain an audit trail of every single experiment you run, complete with code and any saved items
+
+<p float="left">
+  <img src="images/tracking.png" width=40% />
+  <img src="images/queue.png" width=40% /> 
+</p>
+
 
 
