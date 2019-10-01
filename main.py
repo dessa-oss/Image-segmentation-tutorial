@@ -3,10 +3,11 @@ import os
 import sys
 import numpy as np
 import matplotlib
-matplotlib.use('agg')
+matplotlib.use('TkAgg')
 import tensorflow as tf
 import pix2pix
 import tensorflow_datasets as tfds
+from tensorflow.keras import backend as K
 tfds.disable_progress_bar()
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
@@ -82,7 +83,7 @@ train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE
 test_dataset = test.batch(BATCH_SIZE)
 
 
-def display(display_list):
+def display(display_list, name=None):
     plt.figure(figsize=(15, 15))
 
     title = ['Input Image', 'True Mask', 'Predicted Mask']
@@ -92,13 +93,15 @@ def display(display_list):
         plt.title(title[i])
         plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
         plt.axis('off')
-    plt.show()
+    plt.savefig(f"sample_{name}.png")
+    # plt.show()
 
 for image, mask in train.take(1):
     sample_image, sample_mask = image, mask
 display([sample_image, sample_mask])
 
-base_model = tf.keras.applications.MobileNetV2(input_shape=[128, 128, 3], include_top=False)
+with K.name_scope("encoder"):
+    base_model = tf.keras.applications.MobileNetV2(input_shape=[128, 128, 3], include_top=False)
 
 # Use the activations of these layers
 layer_names = [
@@ -115,35 +118,39 @@ down_stack = tf.keras.Model(inputs=base_model.input, outputs=layers)
 
 down_stack.trainable = False
 
-up_stack = [
-    pix2pix.upsample(hyper_params['decoder_neurons'][0], 3),  # 4x4 -> 8x8
-    pix2pix.upsample(hyper_params['decoder_neurons'][1], 3),  # 8x8 -> 16x16
-    pix2pix.upsample(hyper_params['decoder_neurons'][2], 3),  # 16x16 -> 32x32
-    pix2pix.upsample(hyper_params['decoder_neurons'][3], 3),   # 32x32 -> 64x64
-]
+with K.name_scope("decoder"):
+    up_stack = [
+        pix2pix.upsample(hyper_params['decoder_neurons'][0], 3),  # 4x4 -> 8x8
+        pix2pix.upsample(hyper_params['decoder_neurons'][1], 3),  # 8x8 -> 16x16
+        pix2pix.upsample(hyper_params['decoder_neurons'][2], 3),  # 16x16 -> 32x32
+        pix2pix.upsample(hyper_params['decoder_neurons'][3], 3),   # 32x32 -> 64x64
+    ]
 
 def unet_model(output_channels):
 
-    # This is the last layer of the model
-    last = tf.keras.layers.Conv2DTranspose(
-      output_channels, 3, strides=2,
-      padding='same', activation='softmax')  #64x64 -> 128x128
+    with K.name_scope("output"):
+        # This is the last layer of the model
+        last = tf.keras.layers.Conv2DTranspose(
+          output_channels, 3, strides=2,
+          padding='same', activation='softmax')  #64x64 -> 128x128
 
-    inputs = tf.keras.layers.Input(shape=[128, 128, 3])
+    with K.name_scope("input"):
+        inputs = tf.keras.layers.Input(shape=[128, 128, 3])
     x = inputs
+    with K.name_scope("encoder"):
+        # Downsampling through the model
+        skips = down_stack(x)
+        x = skips[-1]
+        skips = reversed(skips[:-1])
 
-    # Downsampling through the model
-    skips = down_stack(x)
-    x = skips[-1]
-    skips = reversed(skips[:-1])
+    with K.name_scope("decoder"):
+        # Upsampling and establishing the skip connections
+        for up, skip in zip(up_stack, skips):
+            x = up(x)
+            concat = tf.keras.layers.Concatenate()
+            x = concat([x, skip])
 
-    # Upsampling and establishing the skip connections
-    for up, skip in zip(up_stack, skips):
-        x = up(x)
-        concat = tf.keras.layers.Concatenate()
-        x = concat([x, skip])
-
-    x = last(x)
+        x = last(x)
 
     return tf.keras.Model(inputs=inputs, outputs=x)
 
@@ -157,33 +164,36 @@ def create_mask(pred_mask):
     pred_mask = pred_mask[..., tf.newaxis]
     return pred_mask[0]
 
-def show_predictions(dataset=None, num=1):
+def show_predictions(dataset=None, num=1, name=None):
     if dataset:
         for image, mask in dataset.take(num):
             pred_mask = model.predict(image)
-            display([image[0], mask[0], create_mask(pred_mask)])
+            display([image[0], mask[0], create_mask(pred_mask)], name=name)
     else:
         display([sample_image, sample_mask,
-                 create_mask(model.predict(sample_image[tf.newaxis, ...]))])
+                 create_mask(model.predict(sample_image[tf.newaxis, ...]))], name=name)
 
-show_predictions()
+try:
+    show_predictions(name='initial')
+except Exception as e:
+    print(e)
 
 callbacks = []
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         clear_output(wait=True)
-        show_predictions()
+        show_predictions(name=f'epoch_{epoch+1}')
         print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 callbacks.append(DisplayCallback())
 
-tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=False)
+tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
                            verbose=1)
 callbacks.append(tb)
 callbacks.append(es)
 
-rp = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.6, patience=2,
+rp = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.8, patience=2,
                        verbose=1)
 callbacks.append(rp)
 
