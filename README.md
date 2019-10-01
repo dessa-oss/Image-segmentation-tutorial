@@ -35,15 +35,17 @@ Maintain an audit trail of every single experiment you run, complete with code a
 
 **Prerequisites**
 
-1. Docker version >18.09 (Docker installation: [Mac](https://docs.docker.com/docker-for-mac/install/) | [Windows](https://docs.docker.com/docker-for-windows/install/))
-2. Python >3.6 ([Anaconda installation](https://www.anaconda.com/distribution/))
+1. Docker version >18.09 (Docker installation: <a target="_blank" href="https://docs.docker.com/docker-for-mac/install/"> Mac</a>
+ | <a target="_blank" href="https://docs.docker.com/docker-for-windows/install/"> Windows</a>
+2. Python >3.6 (<a target="_blank" href="https://www.anaconda.com/distribution/">Anaconda installation</a>)
 3. \>5GB of free machine storage
-4. The atlas_ce_installer.py file (Download after signup [here](https://www.atlas.dessa.com/))
+4. The atlas_ce_installer.py file (Download after signup <a target="_blank" href="https://www.atlas.dessa.com/">here</a>)
 
 
 **Steps**
 
-See [Atlas documentation](https://dessa-atlas-community-docs.readthedocs-hosted.com/en/latest/ce-quickstart-guide/). 
+See <a target="_blank" href="https://dessa-atlas-community-docs.readthedocs-hosted.com/en/latest/ce-quickstart-guide/">Atlas documentation</a>
+  
 
 <details>
   <summary>FAQ: How to upgrade an older version of Atlas?</summary>
@@ -67,7 +69,7 @@ This tutorial demonstrates how to make use of the features of Foundations Atlas.
 
 ## Data and Problem
 
-The dataset that will be used for this tutorial is the [Oxford-IIIT Pet Dataset](https://www.robots.ox.ac.uk/~vgg/data/pets/), created by Parkhi *et al*. The dataset consists of images, their corresponding labels, and pixel-wise masks. The masks are basically labels for each pixel. Each pixel is given one of three categories :
+The dataset that will be used for this tutorial is the <a target="_blank" href="https://www.robots.ox.ac.uk/~vgg/data/pets/">Oxford-IIIT Pet Dataset</a>, created by Parkhi *et al*. The dataset consists of images, their corresponding labels, and pixel-wise masks. The masks are basically labels for each pixel. Each pixel is given one of three categories :
 
 * Class 1 : Pixel belonging to the pet.
 * Class 2 : Pixel bordering the pet.
@@ -75,7 +77,7 @@ The dataset that will be used for this tutorial is the [Oxford-IIIT Pet Dataset]
 
 Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz').
 
-<img src='images/data.png'>
+<img src='images/data.png' width=70%>
 
 ## Clone the Tutorial
 
@@ -86,7 +88,15 @@ git clone https://github.com/dessa-public/Image-segmentation-tutorial.git
 
 ## Start Atlas
 
-Activate the conda environment in which Foundations Atlas is installed. Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at [http://localhost:5555/projects]().
+Activate the conda environment in which Foundations Atlas is installed. Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
+
+
+## Build Docker Image
+
+The motivation of building customized image is to avoid reinstall packages listed in the requirements.txt overtime. 
+```bash
+docker build . --tag image_seg:atlas
+```
 
 
 ## Enabling Atlas Features
