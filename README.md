@@ -104,7 +104,7 @@ import foundations
 
 * To run a single job with Atlas, type the following in the terminal:
 ```python
-foundations submit scheduelr . main.py
+foundations submit scheduler . main.py
 ```
 Make sure your current directory is `Image-segmentation-tutorial`.
 
