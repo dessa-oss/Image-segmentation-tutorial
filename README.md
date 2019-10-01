@@ -93,7 +93,7 @@ Activate the conda environment in which Foundations Atlas is installed. Then run
 
 ## Build Docker Image
 
-The motivation of building customized image is to avoid reinstall packages listed in the requirements.txt overtime. 
+The motivation of building customized image is to avoid reinstall packages listed in the requirements.txt repeatedly. 
 ```bash
 docker build . --tag image_seg:atlas
 ```
@@ -112,12 +112,45 @@ import foundations
 ```
 
 ## Logging Metrics and Parameters
+In the end of main.py, add:
+
+```python
+foundations.log_metric('train_accuracy', float(train_acc))
+
+foundations.log_metric('val_accuracy', float(val_acc))
+
+```
 
 ## Saving Artifacts
 
+Line 108 in main.py:
+```python
+foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+
+foundations.save_artifact('trained_model.h5', key='trained_model')
+```
+
 ## TensorBoard Integration 
+Line 210 in main.py:
+```python
+foundations.set_tensorboard_logdir('tflogs')
+```
 
 ## Configuration
+job_config.yaml
+```python
+# Project config #
+project_name: 'Image-segmentation-tutorial'
+log_level: INFO
+
+# Worker config #
+# Additional definition for the worker can be found here: https://docker-py.readthedocs.io/en/stable/containers.html
+
+num_gpus: 0
+
+worker:
+  image: image_seg:atlas
+```
 
 * To run a single job with Atlas, type the following in the terminal:
 ```python
@@ -129,4 +162,35 @@ Make sure your current directory is `Image-segmentation-tutorial`.
 ```python
 python hyperparameter_search.py
 ```
+
+```python
+import os
+import numpy as np
+import foundations
+
+NUM_JOBS = 10
+
+def generate_params():
+
+    hyper_params = {'batch_size': int(np.random.choice([8, 16, 32, 64])),
+                    'epochs': int(np.random.choice([10, 20, 30, 50])),
+                    'learning_rate': np.random.choice([0.1, 0.01, 0.001, 0.0001]),
+                    'decoder_neurons': [np.random.randint(16, 512), np.random.randint(16, 512),
+                                        np.random.randint(16, 512), np.random.randint(16, 512)],
+                    }
+    return hyper_params
+
+
+for job_ in range(NUM_JOBS):
+    print(f"packaging job {job_}")
+    hyper_params = generate_params()
+    foundations.submit(scheduler_config='scheduler', job_dir='.', command='foundations_main_to_run.py', params=hyper_params,
+                       stream_job_logs=False)
+```
+Line 27, replace hyp
+```python
+hyper_params = foundations.load_parameters()
+```
+
+
 
