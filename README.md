@@ -152,6 +152,10 @@ num_gpus: 0
 
 worker:
   image: image_seg:atlas # name of your customized images
+  volumes:
+    /local/path/to/folder/containing/data:
+      bind: /data/
+      mode: rw
 ```
 
 
