@@ -27,8 +27,8 @@ Keep a journal of thoughts, ideas, and comments on projects
 Maintain an audit trail of every single experiment you run, complete with code and any saved items
 
 <p float="left">
-  <img src="images/tracking.png" width=70% />
-  <img src="images/queue.png" width=70% /> 
+  <img src="images/tracking.png" width=40% />
+  <img src="images/queue.png" width=40% /> 
 </p>
 
 # Start Guide
