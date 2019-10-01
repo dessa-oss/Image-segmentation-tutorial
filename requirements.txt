@@ -7,4 +7,3 @@ tensorflow==2.0.0-rc2
 scikit-learn
 tensorflow_datasets
 pillow
-ipython

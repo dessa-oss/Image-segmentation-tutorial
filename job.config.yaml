@@ -9,13 +9,13 @@ log_level: INFO
 num_gpus: 0
 
 worker:
-  image: atlas-ce/worker:latest  # The worker image will be pulled if it doesn't exist. :latest will be pulled if no tag is specified.
+  image: us.gcr.io/atlas-ce/worker:latest  # The worker image will be pulled if it doesn't exist. :latest will be pulled if no tag is specified.
 #  entrypoint: # Will override the entrypoint defined in the worker image
 #  command:  # Arguments to be passed to the entrypoint above
 #  working_dir:  # Working directory when entering the worker container. Your code will be at /job/job_source
 #
 #  volumes:
-#    <absolute path to the data directory on your local computer>:
+#    /local/path/to/your/data_folder:
 #      bind: /data
 #      mode: rw
 #    volume2:
