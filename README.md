@@ -90,29 +90,31 @@ git clone https://github.com/dessa-public/Image-segmentation-tutorial.git
 
 Activate the conda environment in which Foundations Atlas is installed. Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
 
+## Running a job
 
-## Build Docker Image
-
-The motivation of building customized image is to avoid reinstall packages listed in the requirements.txt repeatedly. 
-```bash
-docker build . --tag image_seg:atlas
+Activate the environment in which you have foundations installed, then from inside the project directory (Image-segmentation-tutorial) run the following command:
+```python
+foundations submit scheduler . main.py
 ```
-
+Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas.
 
 ## Enabling Atlas Features
 
 You are provided with the following python scripts:
 
-main.py: A main script which prepares data, trains an U-net model, then evaluates the model on the test set.
+* main.py: a main script which prepares data, trains an U-net model, then evaluates the model on the test set.
 
-To enable Atlas features, we only to need to make a few changes. Firstly add the following line to the top of main.py:
+To enable Atlas features, we only to need to make a few changes. Firstly add the following line to the line 19 of main.py:
 
 ```python
 import foundations
 ```
 
 ## Logging Metrics and Parameters
-In the end of main.py, add:
+
+The last line of main.py outputs the training and validation accuracy. After these statements, we will call to the function foundations.log_metric().This function takes two arguments, a key and a value. Once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
+
+Line 234 in main.py:
 
 ```python
 foundations.log_metric('train_accuracy', float(train_acc))
@@ -123,6 +125,7 @@ foundations.log_metric('val_accuracy', float(val_acc))
 
 ## Saving Artifacts
 
+We have created graphs for test samples. With Atlas, we can save any artifact to the GUI with just one line. Add the following lines to send the locally saved plot to the Atlas GUI.
 Line 108 in main.py:
 ```python
 foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
@@ -136,8 +139,20 @@ Line 210 in main.py:
 foundations.set_tensorboard_logdir('tflogs')
 ```
 
+## (Optional) Build Docker Image
+
+The motivation of building customized image is to avoid reinstalling packages listed in the requirements.txt repeatedly. In order to build the docker image, `cd custom_docker_image` and run the following command in the terminal:
+```bash
+docker build . --tag image_seg:atlas
+```
+By doing this, you have created a docker image named `image_seg:atlas` on your local computer that conatins the python environment required to run this job.
+
+
+
 ## Configuration
-job_config.yaml
+
+Now, create a file in the project directory named "job.config.yaml", and copy the text from below into the file. This is to set the name of project for foundations. Also, here you tell foundaitons which docker image to use to run the code. In this case, you already build `image_seg:atlas`, so you can see that in the `worker` tab. In case you don't have a custom docker image, you can just comment that `worker` section out so that foundations will use a default docker image (containing default foundations environment) in which the code will be run.
+
 ```python
 # Project config #
 project_name: 'Image-segmentation-tutorial'
@@ -152,16 +167,10 @@ worker:
   image: image_seg:atlas
 ```
 
-* To run a single job with Atlas, type the following in the terminal:
-```python
-foundations submit scheduler . main.py
-```
-Make sure your current directory is `Image-segmentation-tutorial`.
 
-* To run multiple experiments, run:
-```python
-python hyperparameter_search.py
-```
+## Running a Hyperparameter Search
+
+Atlas makes running multiple experiments and tracking the results of a set of hyperparameters easy. Create a new file called 'hyperparameter_search.py' and paste in the following code:
 
 ```python
 import os
@@ -187,9 +196,19 @@ for job_ in range(NUM_JOBS):
     foundations.submit(scheduler_config='scheduler', job_dir='.', command='foundations_main_to_run.py', params=hyper_params,
                        stream_job_logs=False)
 ```
-Line 27, replace hyp
+
+This script samples hyperparameters uniformly from pre-defined ranges, then submits jobs using those hyperparameters. For a script that exerts more control over the hyperparameter sampling, check the end of the tutorial. The job execution code is still coming from main.py; i.e. each experiment is submitted to and ran with the driver.
+
+In order to get this to work, a small modification needs to be made to driver.py. In the code block where the hyperparameters are defined (indicated by the comment 'define hyperparameters'), we'll load the sampled hyperparameters instead of defining a fixed set of hyperparameters explictely.
+
+Replace that block (line 27 - 31) with the following:
 ```python
 hyper_params = foundations.load_parameters()
+```
+
+Now, to run the hyperparameter search, from the project directory (Image-segmentation-tutorial) simply run:
+```python
+python hyperparameter_search.py
 ```
 
 

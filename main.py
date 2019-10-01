@@ -228,8 +228,8 @@ model_history = model.fit(train_dataset, epochs=EPOCHS,
 
 model.save("trained_model.h5")
 
-train_acc =  model_history.history['accuracy'][-1]
-val_acc =  model_history.history['val_accuracy'][-1]
+train_acc = model_history.history['accuracy'][-1]
+val_acc = model_history.history['val_accuracy'][-1]
 
 # Add foundations log_metrics here
 
