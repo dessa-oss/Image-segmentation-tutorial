@@ -6,3 +6,4 @@ tflogs/
 __pycache__/
 *.xml
 *.iml
+*.png
