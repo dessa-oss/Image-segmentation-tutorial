@@ -22,15 +22,15 @@ if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 
-# hyper_params = {'batch_size': 16,
-#                 'epochs': 20,
-#                 'learning_rate': 0.001,
-#                 'decoder_neurons': [128, 64, 32, 16]
-#                 }
-#
-# foundations.log_params(hyper_params)
+hyper_params = {'batch_size': 16,
+                'epochs': 7,
+                'learning_rate': 0.001,
+                'decoder_neurons': [128, 64, 32, 16]
+                }
 
-hyper_params = foundations.load_parameters()
+foundations.log_params(hyper_params)
+
+# hyper_params = foundations.load_parameters()
 
 # Define some job paramenters
 TRAIN_LENGTH = 200
@@ -207,7 +207,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 callbacks.append(DisplayCallback())
 
-foundations.set_tensorboard_logdir('train_logs/')
+foundations.set_tensorboard_logdir('tflogs')
 
 tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
@@ -221,20 +221,37 @@ callbacks.append(rp)
 
 model.summary()
 
+def train_step(model, optimizer, x_train, y_train):
+  with tf.GradientTape() as tape:
+    predictions = model(x_train, training=True)
+    loss = loss_object(y_train, predictions)
+  grads = tape.gradient(loss, model.trainable_variables)
+  optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+  train_loss(loss)
+  train_accuracy(y_train, predictions)
+
+def test_step(model, x_test, y_test):
+  predictions = model(x_test)
+  loss = loss_object(y_test, predictions)
+
+  test_loss(loss)
+  test_accuracy(y_test, predictions)
+
 model_history = model.fit(train_dataset, epochs=EPOCHS,
                           steps_per_epoch=STEPS_PER_EPOCH,
                           validation_steps=VALIDATION_STEPS,
                           validation_data=test_dataset,
                           callbacks=callbacks)
 
-train_loss, train_acc = model_history.history['loss'], model_history.history['accuracy']
-val_loss, val_acc = model_history.history['val_loss'], model_history.history['val_accuracy']
+train_loss, train_acc = model_history.history['loss'][-1], model_history.history['accuracy'][-1]
+val_loss, val_acc = model_history.history['val_loss'][-1], model_history.history['val_accuracy'][-1]
 
-foundations.log_metric('train_loss', train_loss)
-foundations.log_metric('train_accuracy', train_acc)
+foundations.log_metric('train_loss', float(train_loss))
+foundations.log_metric('train_accuracy', float(train_acc))
 
-foundations.log_metric('val_loss', val_loss)
-foundations.log_metric('val_accuracy', val_acc)
+foundations.log_metric('val_loss', float(val_loss))
+foundations.log_metric('val_accuracy', float(val_acc))
 
 model.save('trained_model.h5')
 
