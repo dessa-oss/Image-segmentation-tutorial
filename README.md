@@ -75,7 +75,7 @@ The dataset that will be used for this tutorial is the <a target="_blank" href="
 * Class 2 : Pixel bordering the pet.
 * Class 3 : None of the above/ Surrounding pixel.
 
-Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz').
+Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz).
 
 <img src='images/data.png' width=70%>
 
