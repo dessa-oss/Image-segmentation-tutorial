@@ -126,14 +126,22 @@ foundations.log_metric('val_accuracy', float(val_acc))
 ## Saving Artifacts
 
 We have created graphs for test samples. With Atlas, we can save any artifact to the GUI with just one line. Add the following lines to send the locally saved plot to the Atlas GUI.
+
 Line 108 in main.py:
 ```python
 foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+```
+Moreover, you can save trained model by adding below
 
+```python
 foundations.save_artifact('trained_model.h5', key='trained_model')
 ```
+to line 236 in main.py.
 
 ## TensorBoard Integration 
+
+<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful data visualization tool that makes visualizing your training extremely easy. Foundations Atlas has full TensorBoard integration. To access TensorBoard directly from the Atlas GUI, add the following line of code to start of driver.py.
+
 Line 210 in main.py:
 ```python
 foundations.set_tensorboard_logdir('tflogs')
@@ -141,17 +149,22 @@ foundations.set_tensorboard_logdir('tflogs')
 
 ## (Optional) Build Docker Image
 
-The motivation of building customized image is to avoid reinstalling packages listed in the requirements.txt repeatedly. In order to build the docker image, `cd custom_docker_image` and run the following command in the terminal:
+The motivation of building customized image is to avoid reinstalling packages listed in the requirements.txt repeatedly. Run the following command in the terminal:
 ```bash
+cd custom_docker_image
 docker build . --tag image_seg:atlas
 ```
 By doing this, you have created a docker image named `image_seg:atlas` on your local computer that conatins the python environment required to run this job.
 
 
-
 ## Configuration
 
-Now, create a file in the project directory named "job.config.yaml", and copy the text from below into the file. This is to set the name of project for foundations. Also, here you tell foundaitons which docker image to use to run the code. In this case, you already build `image_seg:atlas`, so you can see that in the `worker` tab. In case you don't have a custom docker image, you can just comment that `worker` section out so that foundations will use a default docker image (containing default foundations environment) in which the code will be run.
+Now, create a file in the project directory named "job.config.yaml", and copy the text from below into the file. 
+
+You can specify project name, docker images in this configuration. 
+
+Benefit from last `Build Docker Image` option, you have already build `image_seg:atlas`. 
+
 
 ```python
 # Project config #
@@ -164,7 +177,7 @@ log_level: INFO
 num_gpus: 0
 
 worker:
-  image: image_seg:atlas
+  image: image_seg:atlas # name of your customized images
 ```
 
 
@@ -197,9 +210,9 @@ for job_ in range(NUM_JOBS):
                        stream_job_logs=False)
 ```
 
-This script samples hyperparameters uniformly from pre-defined ranges, then submits jobs using those hyperparameters. For a script that exerts more control over the hyperparameter sampling, check the end of the tutorial. The job execution code is still coming from main.py; i.e. each experiment is submitted to and ran with the driver.
+This script samples hyperparameters uniformly from pre-defined ranges, then submits jobs using those hyperparameters. For a script that exerts more control over the hyperparameter sampling, check the end of the tutorial. The job execution code is still coming from main.py; i.e. each experiment is submitted to and ran with the script.
 
-In order to get this to work, a small modification needs to be made to driver.py. In the code block where the hyperparameters are defined (indicated by the comment 'define hyperparameters'), we'll load the sampled hyperparameters instead of defining a fixed set of hyperparameters explictely.
+In order to get this to work, a small modification needs to be made to main.py. In the code block where the hyperparameters are defined (indicated by the comment 'define hyperparameters'), we'll load the sampled hyperparameters instead of defining a fixed set of hyperparameters explictely.
 
 Replace that block (line 27 - 31) with the following:
 ```python
@@ -207,9 +220,13 @@ hyper_params = foundations.load_parameters()
 ```
 
 Now, to run the hyperparameter search, from the project directory (Image-segmentation-tutorial) simply run:
-```python
+```bash
 python hyperparameter_search.py
 ```
 
+## Congrats!
+That's it! You've completed the Foundations Atlas Tutorial. Now, you should be able to go to the <a target="_blank" href="http://localhost:5555/projects">GUI</a> and see your running and completed jobs, compare model hyperparameters and performance, as well as view artifacts and training visualizations on TensorBoard.
+
+Do you have any thoughts or feedback for Foundations Atlas? Join the Dessa Slack community!
 
 

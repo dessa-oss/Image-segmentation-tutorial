@@ -23,7 +23,7 @@ if os.environ.get('DISPLAY', '') == '':
     matplotlib.use('Agg')
 
 print("getting hyper parameters for the job")
-# Replace hyper_params by foundations.load_parameters()
+# define hyperparameters: Replace hyper_params by foundations.load_parameters()
 hyper_params = {'batch_size': 16,
                 'epochs': 5,
                 'learning_rate': 0.001,
@@ -206,7 +206,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 callbacks.append(DisplayCallback())
 
-# add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('train_logs/')
+# Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 
 tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
