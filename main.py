@@ -3,13 +3,12 @@ import os
 import sys
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import tensorflow as tf
 import pix2pix
 import tensorflow_datasets as tfds
 from tensorflow.keras import backend as K
 tfds.disable_progress_bar()
-from IPython.display import clear_output
 import matplotlib.pyplot as plt
 from PIL import Image
 sys.modules['Image'] = Image
@@ -182,7 +181,6 @@ callbacks = []
 
 class DisplayCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
-        clear_output(wait=True)
         show_predictions(name=f'epoch_{epoch+1}')
         print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 callbacks.append(DisplayCallback())
