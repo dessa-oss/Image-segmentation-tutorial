@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('agg')
 import tensorflow as tf
 import pix2pix
 import tensorflow_datasets as tfds
@@ -13,22 +13,23 @@ from IPython.display import clear_output
 import matplotlib.pyplot as plt
 from PIL import Image
 sys.modules['Image'] = Image
-
-#import foundations here
+import foundations
 
 if os.environ.get('DISPLAY','') == '':
     print('no display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 
 
-print("getting hyper parameters for the job")
-# Replace hyper_params by foundations.load_parameters()
-hyper_params = {'batch_size': 16,
-                'epochs': 5,
-                'learning_rate': 0.001,
-                'decoder_neurons': [128, 64, 32, 16]
-                }
 
+# hyper_params = {'batch_size': 16,
+#                 'epochs': 20,
+#                 'learning_rate': 0.001,
+#                 'decoder_neurons': [128, 64, 32, 16]
+#                 }
+#
+# foundations.log_params(hyper_params)
+
+hyper_params = foundations.load_parameters()
 
 # Define some job paramenters
 TRAIN_LENGTH = 200
@@ -40,7 +41,7 @@ EPOCHS = hyper_params['epochs']
 VALIDATION_STEPS = 50//BATCH_SIZE
 
 
-print("loading the dataset for the job")
+
 # Load the dataset
 train_data = np.load('train_data.npz', allow_pickle=True)
 train_images = train_data['images']
@@ -85,7 +86,7 @@ train_dataset = train.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 test_dataset = test.batch(BATCH_SIZE)
 
-# Add foundations artifact below plt.savefig i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+
 def display(display_list, name=None):
     plt.figure(figsize=(15, 15))
 
@@ -97,12 +98,12 @@ def display(display_list, name=None):
         plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
         plt.axis('off')
     plt.savefig(f"sample_{name}.png")
-
+    foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
     # plt.show()
 
 for image, mask in train.take(1):
     sample_image, sample_mask = image, mask
-display([sample_image, sample_mask], name='original')
+display([sample_image, sample_mask])
 
 with tf.name_scope("encoder"):
     base_model = tf.keras.applications.MobileNetV2(input_shape=[128, 128, 3], include_top=False)
@@ -191,7 +192,7 @@ class DisplayCallback(tf.keras.callbacks.Callback):
         print ('\nSample Prediction after epoch {}\n'.format(epoch+1))
 callbacks.append(DisplayCallback())
 
-# add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('train_logs/')
+foundations.set_tensorboard_logdir('train_logs/')
 
 tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
@@ -215,6 +216,12 @@ model_history = model.fit(train_dataset, epochs=EPOCHS,
 train_loss, train_acc = model_history.history['loss'], model_history.history['accuracy']
 val_loss, val_acc = model_history.history['val_loss'], model_history.history['val_accuracy']
 
-# Add foundations log_metrics here
+foundations.log_metric('train_loss', train_loss)
+foundations.log_metric('train_accuracy', train_acc)
 
-# Add foundations save_artifacts here to save the trained model
+foundations.log_metric('val_loss', val_loss)
+foundations.log_metric('val_accuracy', val_acc)
+
+model.save('trained_model.h5')
+
+foundations.save_artifact('trained_model.h5', key='trained_model')
