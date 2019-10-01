@@ -247,10 +247,8 @@ model_history = model.fit(train_dataset, epochs=EPOCHS,
 train_loss, train_acc = model_history.history['loss'][-1], model_history.history['accuracy'][-1]
 val_loss, val_acc = model_history.history['val_loss'][-1], model_history.history['val_accuracy'][-1]
 
-foundations.log_metric('train_loss', float(train_loss))
 foundations.log_metric('train_accuracy', float(train_acc))
 
-foundations.log_metric('val_loss', float(val_loss))
 foundations.log_metric('val_accuracy', float(val_acc))
 
 model.save('trained_model.h5')
