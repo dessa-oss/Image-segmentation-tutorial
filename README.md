@@ -1,5 +1,8 @@
 #  Foundations Atlas Tutorial
-<img src='images/atlas_logo.png' width=80%>
+<p float="centre">
+  <img src='images/atlas_logo.png' width=70%>
+</p>
+
 
 # What is Atlas?
 
@@ -23,6 +26,10 @@ Keep a journal of thoughts, ideas, and comments on projects
 
 Maintain an audit trail of every single experiment you run, complete with code and any saved items
 
+<p float="left">
+  <img src="/tracking.png" width=70% />
+  <img src="/queue.png" width=70% /> 
+</p>
 
 # Start Guide
 
@@ -68,7 +75,7 @@ The dataset that will be used for this tutorial is the [Oxford-IIIT Pet Dataset]
 
 Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz').
 
-<img src='images/data_example.png'>
+<img src='images/data.png'>
 
 ## Clone the Tutorial
 
