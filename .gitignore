@@ -6,5 +6,6 @@ tflogs/
 __pycache__/
 *.xml
 *.iml
-*.png
 foundations_job_parameters.json
+#*.png
+
