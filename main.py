@@ -160,8 +160,6 @@ def unet_model(output_channels):
         # Upsampling and establishing the skip connections
         for up, skip in zip(up_stack, skips):
             x = up(x)
-            concat = tf.keras.layers.Concatenate()
-            x = concat([x, skip])
 
         x = last(x)
 
