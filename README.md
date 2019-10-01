@@ -1,5 +1,5 @@
 #  Foundations Atlas Tutorial
-<img src='images/atlas_logo.png'>
+<img src='images/atlas_logo.png' width=80%>
 
 # What is Atlas?
 
@@ -10,12 +10,10 @@ Here are some of the core features:
 **1. Experiment Management & Tracking:**
 
 Tag experiments and easily track hyperparameters, metrics, and artifacts such as images, GIFs, and audio clips in a web-based GUI to track the performance of your models
-<img src='images/management_tracking.png'>
 
 **2. Job queuing & scheduling:**
 
 Launch and queue thousands of experiment variations to fully utilize your system resources
-<img src='images/job_queue.png'>
 
 **3. Collaboration & Bookkeeping:**
 
@@ -45,9 +43,8 @@ See [Atlas documentation](https://dessa-atlas-community-docs.readthedocs-hosted.
 <br>
 
 1. Stop atlas server using `atlas-server stop`
-2. Remove docker images related to Atlas in your terminal
-
-`docker images | grep atlas-ce | awk '{print $3}' | xargs docker rmi -f`
+2. Remove docker images related to Atlas in your terminal `docker images | grep atlas-ce | awk '{print $3}' | xargs docker rmi -f`
+3. Remove the environment where you installed the Atlas or pip uninstall the Atlas `conda env remove -n your_env_name`
 
 -------------------------------------------------------------------------------------------------------------------------
 </details>
@@ -61,26 +58,58 @@ This tutorial demonstrates how to make use of the features of Foundations Atlas.
 * organize model experiments more systematically
 
 
+## Data and Problem
+
+The dataset that will be used for this tutorial is the [Oxford-IIIT Pet Dataset](https://www.robots.ox.ac.uk/~vgg/data/pets/), created by Parkhi *et al*. The dataset consists of images, their corresponding labels, and pixel-wise masks. The masks are basically labels for each pixel. Each pixel is given one of three categories :
+
+* Class 1 : Pixel belonging to the pet.
+* Class 2 : Pixel bordering the pet.
+* Class 3 : None of the above/ Surrounding pixel.
+
+Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz').
+
+<img src='images/data_example.png'>
+
+## Clone the Tutorial
+
+Clone this repository and make it your current directory by running:
+```bash
+git clone https://github.com/dessa-public/Image-segmentation-tutorial.git
+```
+
 ## Start Atlas
 
 Activate the conda environment in which Foundations Atlas is installed. Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at [http://localhost:5555/projects]().
 
 
+## Enabling Atlas Features
 
-## Data
+You are provided with the following python scripts:
 
+main.py: A main script which prepares data, trains an U-net model, then evaluates the model on the test set.
 
+To enable Atlas features, we only to need to make a few changes. Firstly add the following line to the top of main.py:
 
-In this repo, we show how can one perfom image segmentation on some pet imgaes using tensorflow.
+```python
+import foundations
+```
 
+## Logging Metrics and Parameters
 
-# How to run it
-In order to run a single job with foundations, just type the following in the terminal:
+## Saving Artifacts
+
+## TensorBoard Integration 
+
+## Configuration
+
+* To run a single job with Atlas, type the following in the terminal:
 ```python
 foundations submit scheduelr . main.py
 ```
-Make sure your current directory is `pet_segmentation`.
+Make sure your current directory is `Image-segmentation-tutorial`.
 
-In order to run multiple experiments, run `python hyperparameter_search.py` in the terminal.
+* To run multiple experiments, run:
+```python
+python hyperparameter_search.py
+```
 
-# Track experiments
