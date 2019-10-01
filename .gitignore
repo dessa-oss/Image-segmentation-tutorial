@@ -1,0 +1,8 @@
+tflogs/
+.ipynb_checkpoints/
+*.npz
+*.ipynb
+.DS_Store
+__pycache__/
+*.xml
+*.iml
