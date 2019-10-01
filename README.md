@@ -35,8 +35,6 @@ Maintain an audit trail of every single experiment you run, complete with code a
 
 **Prerequisites**
 
-[Go to this page](https://www.google.ca/?target=_blank)
-
 1. Docker version >18.09 (Docker installation: <a target="_blank" href="https://docs.docker.com/docker-for-mac/install/"> Mac</a>
  | <a target="_blank" href="https://docs.docker.com/docker-for-windows/install/"> Windows</a>)
 2. Python >3.6 (<a target="_blank" href="https://www.anaconda.com/distribution/">Anaconda installation</a>)
