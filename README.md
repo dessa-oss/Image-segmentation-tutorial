@@ -184,7 +184,7 @@ def generate_params():
 for job_ in range(NUM_JOBS):
     print(f"packaging job {job_}")
     hyper_params = generate_params()
-    foundations.submit(scheduler_config='scheduler', job_dir='.', command='foundations_main_to_run.py', params=hyper_params,
+    foundations.submit(scheduler_config='scheduler', job_dir='.', command='main.py', params=hyper_params,
                        stream_job_logs=False)
 ```
 
