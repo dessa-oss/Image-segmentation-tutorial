@@ -8,7 +8,6 @@ matplotlib.use('Agg')
 import tensorflow as tf
 import pix2pix
 import tensorflow_datasets as tfds
-from tensorflow.keras import backend as K
 from tensorflow.keras.losses import sparse_categorical_crossentropy
 
 tfds.disable_progress_bar()
@@ -26,8 +25,8 @@ if os.environ.get('DISPLAY', '') == '':
 print("getting hyper parameters for the job")
 # define hyperparameters: Replace hyper_params by foundations.load_parameters()
 hyper_params = {'batch_size': 16,
-                'epochs': 5,
-                'learning_rate': 0.001,
+                'epochs': 10,
+                'learning_rate': 0.0001,
                 'decoder_neurons': [128, 64, 32, 16]
                 }
 
@@ -115,7 +114,6 @@ def display(display_list, name=None):
         plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
         plt.axis('off')
     plt.savefig(f"sample_{name}.png")
-
     # plt.show()
 
 
@@ -143,10 +141,10 @@ down_stack.trainable = False
 
 with tf.name_scope("decoder"):
     up_stack = [
-        pix2pix.upsample(hyper_params['decoder_neurons'][0], 3),  # 4x4 -> 8x8
-        pix2pix.upsample(hyper_params['decoder_neurons'][1], 3),  # 8x8 -> 16x16
-        pix2pix.upsample(hyper_params['decoder_neurons'][2], 3),  # 16x16 -> 32x32
-        pix2pix.upsample(hyper_params['decoder_neurons'][3], 3),  # 32x32 -> 64x64
+        pix2pix.upsample(hyper_params['decoder_neurons'][0], 3, name='conv2d_transpose_4x4_to_8x8'),  # 4x4 -> 8x8
+        pix2pix.upsample(hyper_params['decoder_neurons'][1], 3, name='conv2d_transpose_8x8_to_16x16'),  # 8x8 -> 16x16
+        pix2pix.upsample(hyper_params['decoder_neurons'][2], 3, name='conv2d_transpose_16x16_to_32x32'),  # 16x16 -> 32x32
+        pix2pix.upsample(hyper_params['decoder_neurons'][3], 3, name='conv2d_transpose_32x32_to_64x64'),  # 32x32 -> 64x64
     ]
 
 
@@ -155,7 +153,7 @@ def unet_model(output_channels):
         # This is the last layer of the model
         last = tf.keras.layers.Conv2DTranspose(
             output_channels, 3, strides=2,
-            padding='same', activation='softmax')  # 64x64 -> 128x128
+            padding='same', activation='softmax', name='conv2d_transpose_64x64_to_128x128')  # 64x64 -> 128x128
 
     with tf.name_scope("input"):
         inputs = tf.keras.layers.Input(shape=[128, 128, 3])
@@ -170,8 +168,7 @@ def unet_model(output_channels):
         # Upsampling and establishing the skip connections
         for up, skip in zip(up_stack, skips):
             x = up(x)
-
-            # Is there something missing here? Hint: Is something 'skipped'?
+            # Hint: Is something 'skipped'?
 
         x = last(x)
 
@@ -216,10 +213,8 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 callbacks.append(DisplayCallback())
 
-
-
-
 # Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
+
 
 # tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
@@ -327,5 +322,6 @@ print(f'train loss: {train_loss}, train accuracy: {train_acc},'
 model.save("trained_model.h5")
 
 # Add foundations log_metrics here
+
 
 # Add foundations save_artifacts here to save the trained model
