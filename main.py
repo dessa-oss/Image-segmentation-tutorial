@@ -9,6 +9,7 @@ import tensorflow as tf
 import pix2pix
 import tensorflow_datasets as tfds
 from tensorflow.keras import backend as K
+from tensorflow.keras.losses import sparse_categorical_crossentropy
 
 tfds.disable_progress_bar()
 import matplotlib.pyplot as plt
@@ -32,12 +33,21 @@ hyper_params = {'batch_size': 16,
 
 # Define some job paramenters
 TRAIN_LENGTH = 200
+TEST_LENGTH = 50
 BATCH_SIZE = hyper_params['batch_size']
 BUFFER_SIZE = 200
 STEPS_PER_EPOCH = TRAIN_LENGTH // BATCH_SIZE
 OUTPUT_CHANNELS = 3
 EPOCHS = hyper_params['epochs']
 VALIDATION_STEPS = 50 // BATCH_SIZE
+
+# Define summary writers for Tensorboard
+train_log_dir = 'tflogs/gradient_tape/' + '/train'
+test_log_dir = 'tflogs/gradient_tape/' + '/test'
+train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+tf.summary.experimental.set_step(1)
+
 
 print("loading the dataset for the job")
 # Load the dataset
@@ -161,6 +171,8 @@ def unet_model(output_channels):
         for up, skip in zip(up_stack, skips):
             x = up(x)
 
+            # Is there something missing here? Hint: Is something 'skipped'?
+
         x = last(x)
 
     return tf.keras.Model(inputs=inputs, outputs=x)
@@ -204,12 +216,15 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 callbacks.append(DisplayCallback())
 
+
+
+
 # Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 
-tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
+# tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
                                       verbose=1)
-callbacks.append(tb)
+#callbacks.append(tb)
 callbacks.append(es)
 
 rp = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.8, patience=2,
@@ -218,16 +233,98 @@ callbacks.append(rp)
 
 model.summary()
 
-model_history = model.fit(train_dataset, epochs=EPOCHS,
-                          steps_per_epoch=STEPS_PER_EPOCH,
-                          validation_steps=VALIDATION_STEPS,
-                          validation_data=test_dataset,
-                          callbacks=callbacks)
+
+# tf 2.0 GradientTape and tracking gradients for Tensorboard
+
+def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, callbacks):
+    # Iterate over epochs.
+    train_loss_results = []
+    train_accuracy_results = []
+    validation_loss_results = []
+    validation_accuracy_results = []
+
+    for epoch in range(epochs):
+        print('Start of epoch %d' % (epoch,))
+        epoch_loss_avg = tf.keras.metrics.Mean()
+        epoch_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
+        max_train_step = float(TRAIN_LENGTH) / BATCH_SIZE
+
+        # Iterate over the batches of the dataset.
+        for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+            with tf.GradientTape() as tape:
+                logits = model(x_batch_train)  # Logits for this minibatch
+                loss_value = sparse_categorical_crossentropy(y_batch_train, logits)
+
+            grads = tape.gradient(loss_value, model.trainable_weights)
+
+            for grad, trainable_variable in zip(grads, model.trainable_variables):
+                with train_summary_writer.as_default():
+                    tf.summary.histogram(f'grad_{trainable_variable.name}', grad)
+
+            opt.apply_gradients(zip(grads, model.trainable_weights))
+
+            # Track progress
+            epoch_loss_avg(loss_value)  # Add current batch loss
+
+            # Compare predicted label to actual label
+            epoch_accuracy(y_batch_train, model(x_batch_train))
+
+            if step > max_train_step:
+                break
+
+        # End epoch and track train loss and accuracy
+        train_loss_results.append(epoch_loss_avg.result())
+        train_accuracy_results.append(epoch_accuracy.result())
+        with train_summary_writer.as_default():
+            tf.summary.scalar('training_loss', epoch_loss_avg.result())
+            tf.summary.scalar('training_acc', epoch_accuracy.result())
+
+        epoch_loss_avg = tf.keras.metrics.Mean()
+        epoch_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
+
+        # track validation loss and accuracy after each epoch
+        max_eval_step = float(TEST_LENGTH) / BATCH_SIZE
+        for step, (x_batch, y_batch) in enumerate(validation_dataset):
+            logits = model(x_batch)
+            epoch_accuracy(y_batch, logits)
+            epoch_loss = sparse_categorical_crossentropy(y_batch, logits)
+            epoch_loss_avg(epoch_loss)
+            if step > max_eval_step:
+                break
+
+        validation_loss_results.append(epoch_loss_avg.result())
+        validation_accuracy_results.append(epoch_accuracy.result())
+        with test_summary_writer.as_default():
+            tf.summary.scalar('validation_loss', epoch_loss_avg.result())
+            tf.summary.scalar('validation_acc', epoch_accuracy.result())
+
+        # use existing callbacks
+        show_predictions(name=f'epoch_{epoch + 1}')
+
+    return train_loss_results, train_accuracy_results, validation_loss_results, validation_accuracy_results
+
+
+# optional: comment to use keras API
+train_loss_results, train_accuracy_results, validation_loss_results, validation_accuracy_results = train_with_gradient_tape(train_dataset, test_dataset, model, EPOCHS, callbacks)
+train_acc = train_accuracy_results[-1]
+val_acc = validation_accuracy_results[-1]
+train_loss = train_loss_results[-1]
+validation_loss = validation_loss_results[-1]
+print(f'train loss: {train_loss}, train accuracy: {train_acc},'
+      f' validation loss: {validation_loss}, validation accuracy: {val_acc}')
+
+
+# optional: uncomment to use keras API without tracking the gradients as an alternative
+# model_history = model.fit(train_dataset, epochs=EPOCHS,
+#                          steps_per_epoch=STEPS_PER_EPOCH,
+#                          validation_steps=VALIDATION_STEPS,
+#                          validation_data=test_dataset,
+#                          callbacks=callbacks)
+# train_acc = model_history.history['accuracy'][-1]
+# val_acc = model_history.history['val_accuracy'][-1]
+
 
 model.save("trained_model.h5")
-
-train_acc = model_history.history['accuracy'][-1]
-val_acc = model_history.history['val_accuracy'][-1]
 
 # Add foundations log_metrics here
 

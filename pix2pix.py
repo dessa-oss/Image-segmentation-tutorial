@@ -236,7 +236,7 @@ def upsample(filters, size, norm_type='batchnorm', apply_dropout=False):
   if apply_dropout:
     result.add(tf.keras.layers.Dropout(0.5))
 
-  result.add(tf.keras.layers.ReLU())
+  result.add(tf.keras.layers.Activation('sigmoid'))  # Hint: more RELevant activation function here?
 
   return result
 
