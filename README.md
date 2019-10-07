@@ -81,7 +81,7 @@ foundations submit scheduler . main.py
 ```
 Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
 
-#####Now you already have code reproducbility:
+###Now you already have code reproducbility:
 You can check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
 You can reproduce your code and results at any time later in the future. In order to recover the code corresponding to any foundations job_id, just `cd ~/.foundations/job_data/archive/your_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
 
@@ -89,7 +89,7 @@ Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explor
 ## Full Atlas Features
 The full Atlas features include: 
 1. Automatic environment creation for jobs
-1. Use of Custom docker images to avoid replicating download of packages
+1. Use of custom docker images to avoid replicating download of packages
 1. Experiment tracking via GUI to monitor various jobs
 1. Code reproducibility for different experiments
 1. Automatic job scheduling which run in the background
