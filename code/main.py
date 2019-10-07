@@ -16,7 +16,7 @@ from PIL import Image
 
 sys.modules['Image'] = Image
 
-# import foundations here
+# TODO import foundations here
 
 if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
@@ -49,10 +49,10 @@ tf.summary.experimental.set_step(1)
 
 
 print("loading the dataset for the job")
-# Load the dataset
-# train_data = np.load('./data/train_data.npz', allow_pickle=True)
-# when running with foudations, replace the line above with the following line:
-train_data = np.load('/data/train_data.npz', allow_pickle=True)
+
+train_data = np.load('./data/train_data.npz', allow_pickle=True)
+# To load the dataset from inside a Docker image, replace the above line with:
+# train_data = np.load('/data/train_data.npz', allow_pickle=True)
 train_images = train_data['images']
 train_masks = train_data['masks']
 
@@ -66,6 +66,8 @@ def create_generator(images, masks):
     return callable_generator
 
 
+# Dataset object helps us to manipulate the data more easily compared to using a generator object directly
+# Types and shapes of the image (128, 128, 3), and mask (128,128, 1) are explicitly given
 train_dataset = tf.data.Dataset.from_generator(create_generator(train_images[:200], train_masks[:200]),
                                                (tf.float32, tf.float32), ((128, 128, 3), (128, 128, 1)))
 test_dataset = tf.data.Dataset.from_generator(create_generator(train_images[200:], train_masks[200:]),
@@ -81,6 +83,7 @@ def normalize(input_image, input_mask):
 
 @tf.function
 def load_image_train(input_image, input_mask):
+    # a simple augmentation during training
     if tf.random.uniform(()) > 0.5:
         input_image = tf.image.flip_left_right(input_image)
         input_mask = tf.image.flip_left_right(input_mask)
@@ -95,16 +98,18 @@ def load_image_test(input_image, input_mask):
     return input_image, input_mask
 
 
+# dataset.map function applies the augmentation to the input data as part of the graph
 train = train_dataset.map(load_image_train, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
 test = test_dataset.map(load_image_test)
 
+# Larger buffer size is better for shuffle operation as long as there is enough resources
 train_dataset = train.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
 train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 test_dataset = test.batch(BATCH_SIZE)
 
 
-# Add foundations artifact below plt.savefig i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+# TODO Add foundations artifact i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
 def display(display_list, name=None):
     plt.figure(figsize=(15, 15))
 
@@ -215,13 +220,14 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 callbacks.append(DisplayCallback())
 
-# Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
+# TODO Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 
 
 # tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
                                       verbose=1)
-#callbacks.append(tb)
+
+# callbacks.append(tb)  # uncomment to use with keras fit
 callbacks.append(es)
 
 rp = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.8, patience=2,
@@ -232,7 +238,6 @@ model.summary()
 
 
 # tf 2.0 GradientTape and tracking gradients for Tensorboard
-
 def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, callbacks):
     # Iterate over epochs.
     train_loss_results = []
@@ -323,7 +328,7 @@ print(f'train loss: {train_loss}, train accuracy: {train_acc},'
 
 model.save("trained_model.h5")
 
-# Add foundations log_metrics here
+# TODO Add foundations log_metrics here
 
 
-# Add foundations save_artifacts here to save the trained model
+# TODO Add foundations save_artifacts here to save the trained model
