@@ -181,6 +181,68 @@ Note: If you don't want to use the custom docker image, you can just comment out
 
 Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the foundations docker container.
 
+## How to Improve the Accuracy?
+After running your most recent job, you can see that the validation accuracy is not very impressive. 
+The predicted artifacts don't look similar to the true masks either. 
+
+### Debugging with Tensorboard
+Let's analyze the gradients using Tensorboard to understand what is happening with this sub par model. 
+First click on the checkbox for your most recent job and press `Send to Tensorboard` button. 
+This should open a new tab with Tensorboard up and running. 
+Find the [histograms](http://localhost:5959/#histograms) tab. 
+
+There you will see gradient plots such as below, where the first upsample layer has a range of gradients between 0.4 and -0.4:
+
+Final upsample layer       |   Previous layers | ..  | First upsample layer| 
+:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
+![](images/grad_4.png)  |  ![](images/grad_3.png) |  ![](images/grad_2.png) |  ![](images/grad_0.png) 
+
+As it is apparent from the plots, the gradients for the first upsample layer are small and centered around zero.
+To prevent vanishing of gradients in the earlier layers, you can try modifying the code appropriately. 
+Feel free to check the hints within the code! Alternatively the correct solution can be found below.
+
+Validation accuracy | Validation loss
+:-------------------------:|:-------------------------:
+![](images/validation_acc.png) | ![](images/validation_loss.png) 
+
+
+### Solution
+<details><summary>Click to See</summary>
+<p>
+
+
+Modern architectures often benefit from skip connections and appropriate activation functions to avoid the vanishing gradients problem.
+Looking at the function `main.py/unet_model` reveals that the skip connections are not properly implemented. 
+After the line `x = up(x)` add the below lines to fix this:
+```
+concat = tf.keras.layers.Concatenate()
+x = concat([x, skip])
+```
+
+Another problem in the model is the usage of the sigmoid in the function `pix2pix.py/upsample`:
+```
+result.add(tf.keras.layers.Activation('sigmoid'))
+```
+Modify this line as below:
+```
+result.add(tf.keras.layers.ReLU())
+```
+Running another job with these changes results in a significantly higher accuracy, with below gradient plots, 
+where the first upsample layer has a range of gradients between 125 and -125 (300x greater now in magnitude!):
+
+Final upsample layer       |   Previous layers | ..  | First upsample layer| 
+:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
+![](images/fixed_grad_4.png)  |  ![](images/fixed_grad_3.png) |  ![](images/fixed_grad_2.png) |  ![](images/fixed_grad_0.png) 
+
+Validation accuracy | Validation loss
+:-------------------------:|:-------------------------:
+![](images/fixed_validation_acc.png) | ![](images/fixed_validation_loss.png)
+
+</p>
+</details>
+
+
+
 ## Running a Hyperparameter Search
 
 Atlas makes running multiple experiments and tracking the results of a set of hyperparameters easy. Create a new file called 'hyperparameter_search.py' and paste in the following code:
