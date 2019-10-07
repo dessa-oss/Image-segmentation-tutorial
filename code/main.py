@@ -50,7 +50,9 @@ tf.summary.experimental.set_step(1)
 
 print("loading the dataset for the job")
 # Load the dataset
-train_data = np.load('train_data.npz', allow_pickle=True)
+# train_data = np.load('./data/train_data.npz', allow_pickle=True)
+# when running with foudations, replace the line above with the following line:
+train_data = np.load('/data/train_data.npz', allow_pickle=True)
 train_images = train_data['images']
 train_masks = train_data['masks']
 

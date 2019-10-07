@@ -50,6 +50,8 @@ The dataset that will be used for this tutorial is the <a target="_blank" href="
 
 Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz).
 
+Paste the downloaded file named `train_data.npz` under the `data` directory of Image-segmentation-tutorial project.
+
 <img src='images/data.png' width=70%>
 
 ## U-Net Model
@@ -77,7 +79,7 @@ Activate the conda environment in which Foundations Atlas is installed (by runni
 
 Activate the environment in which you have foundations installed, then from inside the project directory (Image-segmentation-tutorial) run the following command:
 ```python
-foundations submit scheduler . main.py
+foundations submit scheduler . code/main.py
 ```
 Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
 
@@ -102,7 +104,7 @@ The full Atlas features include:
 
 ## How to Enable Full Atlas Features
 
-You are provided with the following python scripts:
+Inside the `code` directory ,you are provided with the following python scripts:
 
 * main.py: a main script which prepares data, trains an U-net model, then evaluates the model on the test set.
 
@@ -111,6 +113,15 @@ To enable Atlas features, we only to need to make a few changes. Firstly add the
 ```python
 import foundations
 ```
+
+## Data Directory
+
+It is always good practice to only package the code and not the data for every job. This is to prevent excessive usage of your computer's memory. 
+Replace line 53, where the `train_data.npz` with the line below:
+```python
+train_data = np.load('/data/train_data.npz', allow_pickle=True)
+```
+More details of how it will work inside foundations atlas are provided under the `configuration` section below in this document.
 
 ## Logging Metrics and Parameters
 
@@ -162,7 +173,9 @@ By doing this, you have created a docker image named `image_seg:atlas` on your l
 
 ## Configuration
 
-Now, create a file in the project directory named "job.config.yaml", and copy the text from below into the file. 
+The `configuration` file is used to specify settings for any foundations job. Below is an example of configuration file that you can use for this project.
+
+First, create a file named "job.config.yaml" inside `code` directory, and copy the text from below into the file. 
 
 You can specify project name, docker images in this configuration. 
 
@@ -189,7 +202,16 @@ worker:
 
 Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. In this case, foundations will use a default docker image and will automatically create the required enviornment for the each job seperately (this may take relatively longer time if your job needs a lot of packages to be installed).
 
+#####Make sure to give right path of your data folder as shown below
 Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the foundations docker container.
+
+## Run with full features of foundations atlas
+
+Go inside the `code`directory and run the command below in your terminal (make sure you are in the foundations enviornment).
+```python
+foundations submit scheduler . main.py
+```
+This time we are running the `main.py` from inside the `code` directory. In this way, foundations atlas will only package the `code` folder and the `data` folder will get mounted directly inside foundations docker container (as we specified inside the configuration file above). In this way, the data will not be a part of job package making it much faster and memory efficient.
 
 ## How to Improve the Accuracy?
 After running your most recent job, you can see that the validation accuracy is not very impressive. 
@@ -255,7 +277,7 @@ Validation accuracy | Validation loss
 
 ## Running a Hyperparameter Search
 
-Atlas makes running multiple experiments and tracking the results of a set of hyperparameters easy. Create a new file called 'hyperparameter_search.py' and paste in the following code:
+Atlas makes running multiple experiments and tracking the results of a set of hyperparameters easy. Create a new file called 'hyperparameter_search.py' inside the `code` directory and paste in the following code:
 
 ```python
 import os
@@ -291,7 +313,7 @@ Replace that block (line 27 - 31) with the following:
 hyper_params = foundations.load_parameters()
 ```
 
-Now, to run the hyperparameter search, from the project directory (Image-segmentation-tutorial) simply run:
+Now, to run the hyperparameter search, from the `code` directory simply run:
 ```bash
 python hyperparameter_search.py
 ```
@@ -300,3 +322,8 @@ python hyperparameter_search.py
 That's it! You've completed the Foundations Atlas Tutorial. Now, you should be able to go to the <a target="_blank" href="http://localhost:5555/projects">GUI</a> and see your running and completed jobs, compare model hyperparameters and performance, as well as view artifacts and training visualizations on TensorBoard.
 
 Do you have any thoughts or feedback for Foundations Atlas? Join the Dessa Slack community! tiny.cc/dessa
+
+
+## References
+1. https://www.tensorflow.org/tutorials/images/segmentation
+1. https://dessa-atlas-community-docs.readthedocs-hosted.com/en/latest/
