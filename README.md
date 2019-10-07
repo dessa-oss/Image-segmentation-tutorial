@@ -54,14 +54,15 @@ Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_d
 
 ## Clone the Tutorial
 
-Clone this repository and make it your current directory by running:
+Clone this repository by running:
 ```bash
 git clone https://github.com/dessa-public/Image-segmentation-tutorial.git
 ```
+and then type `cd Image-segmentation-tutorial` in the terminal to make this your current directory.
 
 ## Start Atlas
 
-Activate the conda environment in which Foundations Atlas is installed. Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
+Activate the conda environment in which Foundations Atlas is installed (by running `conda activte your_env` inside terminal). Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
 
 ## Running a job
 
@@ -69,9 +70,27 @@ Activate the environment in which you have foundations installed, then from insi
 ```python
 foundations submit scheduler . main.py
 ```
-Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas.
+Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
 
-## Enabling Atlas Features
+#####Now you already have code reproducbility:
+You can check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
+You can reproduce your code and results at any time later in the future. In order to recover the code corresponding to any foundations job_id, just `cd ~/.foundations/job_data/archive/your_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
+
+Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas. 
+## Full Atlas Features
+The full Atlas features include: 
+1. Automatic environment creation for jobs
+1. Use of Custom docker images to avoid replicating download of packages
+1. Experiment tracking via GUI to monitor various jobs
+1. Code Reproducibility
+1. Job scheduling
+1. Hyperparameter search to create better ML models
+1. Track job performance via job parameters and metrics
+1. Save any objects such as images, audio, video corresponding to any job and view inside GUI
+1. Tensorboard integration to analyze deep ML models
+
+
+## How to Enable Full Atlas Features
 
 You are provided with the following python scripts:
 
@@ -158,6 +177,9 @@ worker:
       mode: rw
 ```
 
+Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. In this case, foundations will use a default docker image and will automatically create the required enviornment for the each job seperately (this may take relatively longer time if your job needs a lot of packages to be installed).
+
+Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the foundations docker container.
 
 ## Running a Hyperparameter Search
 
