@@ -12,7 +12,7 @@
  | <a target="_blank" href="https://docs.docker.com/docker-for-windows/install/"> Windows</a>)
 2. Python >3.6 (<a target="_blank" href="https://www.anaconda.com/distribution/">Anaconda installation</a>)
 3. \>5GB of free machine storage
-4. The atlas_ce_installer.py file (Download after signup <a target="_blank" href="https://www.atlas.dessa.com/">here</a>)
+4. The atlas_ce_installer.py file (sign up and <a target="_blank" href="https://www.atlas.dessa.com/"> DOWNLOAD HERE </a>)
 
 
 **Steps**
@@ -77,14 +77,14 @@ Activate the conda environment in which Foundations Atlas is installed (by runni
 
 ## Running a job
 
-Activate the environment in which you have foundations installed, then from inside the project directory (Image-segmentation-tutorial) run the following command:
+Activate the environment in which you have Foundations Atlas installed, then from inside the project directory (Image-segmentation-tutorial) run the following command:
 ```python
 foundations submit scheduler . code/main.py
 ```
 Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
 
 Now you already have code reproducbility:
-You can reproduce your code and results at any time later in the future. In order to recover the code corresponding to any foundations job_id, just `cd ~/.foundations/job_data/archive/your_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
+You can reproduce your code and results at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just `cd ~/.foundations/job_data/archive/your_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
 
 You can also check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
 
@@ -105,11 +105,11 @@ The full Atlas features include:
 
 ## How to Enable Full Atlas Features
 
-Inside the `code` directory ,you are provided with the following python scripts:
+Inside the `code` directory, you are provided with the following python scripts:
 
 * main.py: a main script which prepares data, trains an U-net model, then evaluates the model on the test set.
 
-To enable Atlas features, we only to need to make a few changes. Firstly add the following line to the line 19 of main.py:
+To enable Atlas features, we only to need to make a few changes. To begin using foundations atlas, add an import statement to the beginning of `main.py`:
 
 ```python
 import foundations
@@ -117,18 +117,27 @@ import foundations
 
 ## Data Directory
 
-It is always good practice to only package the code and not the data for every job. This is to prevent excessive usage of your computer's memory. 
-Replace line 53, where the `train_data.npz` with the line below:
+It is always good practice to only package the code and not the data for every job. This is to prevent excessive usage of your computer's storage. 
+```python
+train_data = np.load('./data/train_data.npz', allow_pickle=True)
+```
+Replace the above block where the `train_data.npz` is loaded with the line below:
 ```python
 train_data = np.load('/data/train_data.npz', allow_pickle=True)
 ```
-More details of how it will work inside foundations atlas are provided under the `configuration` section below in this document.
+More details of how it will work inside Foundations Atlas are provided under the `Configuration` section below in this document.
 
 ## Logging Metrics and Parameters
 
-The last line of main.py outputs the training and validation accuracy. After these statements, we will call to the function foundations.log_metric().This function takes two arguments, a key and a value. Once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
+The last line of main.py outputs the training and validation accuracy. After these statements, we will call to the function `foundations.log_metric()`.This function takes two arguments, a key and a value. Once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
 
-Line 234 in main.py:
+```python
+model.save("trained_model.h5")
+
+# Add foundations log_metrics here
+```
+
+after above lines in `main.py` add:
 
 ```python
 foundations.log_metric('train_accuracy', float(train_acc))
@@ -140,8 +149,10 @@ foundations.log_metric('val_accuracy', float(val_acc))
 ## Saving Artifacts
 
 We have created graphs for test samples. With Atlas, we can save any artifact to the GUI with just one line. Add the following lines to send the locally saved plot to the Atlas GUI.
-
-Line 108 in main.py:
+ ```python
+    plt.savefig(f"sample_{name}.png")
+ ``` 
+ after the above line in `main.py`, add below line:
 ```python
 foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
 ```
@@ -150,14 +161,17 @@ Moreover, you can save trained model by adding below
 ```python
 foundations.save_artifact('trained_model.h5', key='trained_model')
 ```
-to line 236 in main.py.
+to the end of `main.py`.
 
 ## TensorBoard Integration 
 
 
-<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful data visualization tool that makes visualizing your training extremely easy. Foundations Atlas has full TensorBoard integration. To access TensorBoard directly from the Atlas GUI, add the following line of code to start of driver.py.
+<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful data visualization tool that makes visualizing your training extremely easy. Foundations Atlas has full TensorBoard integration. 
 
-Line 210 in main.py:
+```python
+# Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
+```
+After above line, to access TensorBoard directly from the Atlas GUI, add the following line of code:
 ```python
 foundations.set_tensorboard_logdir('tflogs')
 ```
@@ -172,11 +186,12 @@ docker build . --tag image_seg:atlas
 By doing this, you have created a docker image named `image_seg:atlas` on your local computer that conatins the python environment required to run this job.
 
 
-## Configuration
+### Running with the Built Docker Image: Configuration
 
-The `configuration` file is used to specify settings for any foundations job. Below is an example of configuration file that you can use for this project.
+The configuration file is needs to be created to specify additional settings for any Foundations Atlas job. 
+Below is an example of configuration file that you can use for this project.
 
-First, create a file named "job.config.yaml" inside `code` directory, and copy the text from below into the file. 
+First, create a file named `job.config.yaml` inside `code` directory, and copy the text from below into the file. 
 
 You can specify project name, docker images in this configuration. 
 
@@ -201,11 +216,11 @@ worker:
       mode: rw
 ```
 
-Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. In this case, foundations will use a default docker image and will automatically create the required enviornment for the each job seperately (this may take relatively longer time if your job needs a lot of packages to be installed).
+Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. In this case, Foundations Atlas will use a default docker image and will automatically create the required enviornment for the each job seperately (this may take relatively longer time if your job needs a lot of packages to be installed).
 
 Make sure to give right path of your data folder as shown below:
 
-Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the foundations docker container.
+Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the Foundations Atlas docker container.
 
 ## Run with full features of foundations atlas
 
@@ -213,7 +228,12 @@ Go inside the `code`directory and run the command below in your terminal (make s
 ```python
 foundations submit scheduler . main.py
 ```
-This time we are running the `main.py` from inside the `code` directory. In this way, foundations atlas will only package the `code` folder and the `data` folder will get mounted directly inside foundations docker container (as we specified inside the configuration file above). In this way, the data will not be a part of job package making it much faster and memory efficient.
+This time we are running the `main.py` from inside the `code` directory. In this way, Foundations Atlas will only package the `code` folder and the `data` folder will get mounted directly inside Foundations Atlas docker container (as we specified inside the configuration file above). In this way, the data will not be a part of job package making it much faster and memory efficient.
+
+At any point, to clear the queue of submitted jobs:
+```python
+foundations clear-queue scheduler
+```
 
 ## How to Improve the Accuracy?
 After running your most recent job, you can see that the validation accuracy is not very impressive. 
@@ -262,7 +282,7 @@ Modify this line as below:
 result.add(tf.keras.layers.ReLU())
 ```
 Running another job with these changes results in a significantly higher accuracy, with below gradient plots, 
-where the first upsample layer has a range of gradients between 125 and -125 (300x greater now in magnitude!):
+where the first upsample (`conv2d_transpose_4x4_to_8x8` under `grad_sequential`) layer has a range of gradients between 125 and -125 (300x greater now in magnitude!):
 
 Final upsample layer       |   Previous layers | ..  | First upsample layer| 
 :-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
@@ -310,7 +330,14 @@ This script samples hyperparameters uniformly from pre-defined ranges, then subm
 
 In order to get this to work, a small modification needs to be made to main.py. In the code block where the hyperparameters are defined (indicated by the comment 'define hyperparameters'), we'll load the sampled hyperparameters instead of defining a fixed set of hyperparameters explictely.
 
-Replace that block (line 27 - 31) with the following:
+```python
+# define hyperparameters: Replace hyper_params by foundations.load_parameters()
+hyper_params = {'batch_size': 16,
+                'epochs': 10,
+                'learning_rate': 0.0001,
+                'decoder
+```
+Replace the above block with the following:
 ```python
 hyper_params = foundations.load_parameters()
 ```
@@ -323,7 +350,7 @@ python hyperparameter_search.py
 ## Congrats!
 That's it! You've completed the Foundations Atlas Tutorial. Now, you should be able to go to the <a target="_blank" href="http://localhost:5555/projects">GUI</a> and see your running and completed jobs, compare model hyperparameters and performance, as well as view artifacts and training visualizations on TensorBoard.
 
-Do you have any thoughts or feedback for Foundations Atlas? Join the Dessa Slack community! tiny.cc/dessa
+Do you have any thoughts or feedback for Foundations Atlas? Join the [Dessa Slack community](https://u12604448.ct.sendgrid.net/wf/click?upn=FWkFK8jQsWHHe3Zs0Gq5lTVfVJ15gKBcKJ8U8683-2FgbxDO0AKr58M46HvgnHq5gu7wxIxP578G4skYZ0QeDgMvlsnXObXuf729kfmWrTshGGl6TUN1-2FFyXqmyrD5ZoV-2FZRo0hnw3InKzQzFwqlF1quZt7VDueDH-2FEBH340YEI-2BzPVPIYVXfgn1PnGl8fkLCnbYCd3y-2FE9USkbXAlUUrS32M6lVOa8yh3Zx0NI6a4qqpVFMxksNDun1d3ARH2OSPbpz1vHZKPFnXOfLxXECu8PNhWW7f7-2FVoNinol6t-2BZkEIwfKAjbZI9cZRHYLkxGcq1fsHpXGYBb2nNHtUGC77Lo19RTjhUG7juCEF34X3kF4WvYGqy5xbhbLBL1VsCLH-2BckvPQvF-2Bungthb9Y9DVEIIY4DrphpWV2nxMH57ReudsB-2FoUEtHc18-2BSR84JprF1rfenfH4JeL2dr9DuunbkWvOph-2FkBza8U6YjdxtyfjjfJcoBacw-2B-2BmL6u6HWVn6M95UMOlfqzhF9cb-2FtspPAta5-2FN-2FXlygoZptG74-2B1qYgqeJKdfs8NNbZ21inPrj7an6r1nYNW4YC2xhFyLU2xQsBqtA-3D-3D_HUWHbgbBidglsEUmLbxZPG73zbI-2FXxUPQjCzMJWkdroEX4ThZ-2Ba-2FJdu8bhCG1wcvpbbfZo-2BiSSdhtu4tG6XMtkBL8Zae-2BGEwDN3szVNiE30Om1ynfKmNpOylsSRYgejDusVxPEBpP9-2FS7hlC9E8wo2TuFuHrlbl22LkB75K0wEtiJO0c2mViU1HaEmPEzBLCHXf0Y9-2BfRiS6YpAx89cMJwZ-2FMdDGn6VZ5J9E7sIA7uLAld9W8Xdng7daA-2B1UUesrCZrB378tYyV8RbFvAnAvAn08hSekPk-2B-2BE6Anb5HnHs8XDTwPMX7sPvViiOeXxCyHWzYDvS-2FTwddaZaPC2CL8lnQwdSWGGaDm1qQRQMv8W5CeeQbMj4Y4afLIpw6ujHEv9wrMcqEQ8WLNT0YmT8mXDJ-2FdsCQq8geKsHq4T8tWttr00sD8cyI7bWpNHnj05w2jgR0MVnuB3iWDUw-2F8P3yPB2-2BxfA34jXuxFn-2B30bf-2FOnkNcu-2B-2B0UeWmzxmjZyvxCXpjPvurewqGr-2Fpcx78JUfAHaFKyRorhoDV8yvd85XK-2BJ6vyGuwZ1wrEDBJTsE-2BGedJ)!
 
 
 ## References
