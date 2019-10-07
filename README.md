@@ -83,9 +83,10 @@ foundations submit scheduler . code/main.py
 ```
 Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
 
-###Now you already have code reproducbility:
-You can check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
+Now you already have code reproducbility:
 You can reproduce your code and results at any time later in the future. In order to recover the code corresponding to any foundations job_id, just `cd ~/.foundations/job_data/archive/your_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
+
+You can also check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
 
 Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas. 
 ## Full Atlas Features
@@ -202,7 +203,8 @@ worker:
 
 Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. In this case, foundations will use a default docker image and will automatically create the required enviornment for the each job seperately (this may take relatively longer time if your job needs a lot of packages to be installed).
 
-#####Make sure to give right path of your data folder as shown below
+Make sure to give right path of your data folder as shown below:
+
 Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the foundations docker container.
 
 ## Run with full features of foundations atlas
