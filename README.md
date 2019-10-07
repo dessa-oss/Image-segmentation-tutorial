@@ -91,8 +91,9 @@ The full Atlas features include:
 1. Automatic environment creation for jobs
 1. Use of Custom docker images to avoid replicating download of packages
 1. Experiment tracking via GUI to monitor various jobs
-1. Code Reproducibility
-1. Job scheduling
+1. Code reproducibility for different experiments
+1. Automatic job scheduling which run in the background
+1. Live logs for any running jobs and saved logs for finished or failed jobs
 1. Hyperparameter search to create better ML models
 1. Track job performance via job parameters and metrics
 1. Save any objects such as images, audio, video corresponding to any job and view inside GUI
