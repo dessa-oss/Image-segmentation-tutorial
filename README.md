@@ -5,7 +5,11 @@
 
 
 # Start Guide
+## Cloud option
+If you have an AWS account, try using our <a target="_blank" href="https://dessa-atlas-community-docs.readthedocs-hosted.com/en/latest/atlas-on-aws/">Atlas CE AMI</a> (publicly available Amazon Machine Image for Atlas).
 
+The AMI will start by automatically installing the latest version of Atlas CE on a conda environment as well as starting the atlas server, and downloading this tutorial, (`cd atlas_tutorials/Image-segmentation-tutorial`) and you can directly skip to `Image Segmentation` section. The AMI supports both GPU and CPU instances.
+## Local option
 **Prerequisites**
 
 1. Docker version >18.09 (Docker installation: <a target="_blank" href="https://docs.docker.com/docker-for-mac/install/"> Mac</a>
