@@ -141,8 +141,10 @@ after above lines in `main.py` add:
 
 ```python
 foundations.log_metric('train_accuracy', float(train_acc))
-
 foundations.log_metric('val_accuracy', float(val_acc))
+
+# track hyperparameters
+foundations.log_params(hyper_params)
 
 ```
 
@@ -188,7 +190,7 @@ By doing this, you have created a docker image named `image_seg:atlas` on your l
 
 ### Running with the Built Docker Image: Configuration
 
-The configuration file is needs to be created to specify additional settings for any Foundations Atlas job. 
+The configuration file should be created to specify additional settings for any Foundations Atlas job. 
 Below is an example of configuration file that you can use for this project.
 
 First, create a file named `job.config.yaml` inside `code` directory, and copy the text from below into the file. 
