@@ -8,4 +8,4 @@ __pycache__/
 *.iml
 foundations_job_parameters.json
 #*.png
-
+*.yaml

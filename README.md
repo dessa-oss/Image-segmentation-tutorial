@@ -87,9 +87,6 @@ foundations submit scheduler . code/main.py
 ```
 Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
 
-Now you already have code reproducbility:
-You can reproduce your code and results at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just `cd ~/.foundations/job_data/archive/your_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
-
 You can also check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
 
 Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas. 
@@ -119,17 +116,19 @@ To enable Atlas features, we only to need to make a few changes. To begin using 
 import foundations
 ```
 
-## Data Directory
+## TensorBoard Integration 
 
-It is always good practice to only package the code and not the data for every job. This is to prevent excessive usage of your computer's storage. 
+
+<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful data visualization tool that makes visualizing your training extremely easy. Foundations Atlas has full TensorBoard integration. 
+
 ```python
-train_data = np.load('./data/train_data.npz', allow_pickle=True)
+# Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 ```
-Replace the above block where the `train_data.npz` is loaded with the line below:
+After above line, to access TensorBoard directly from the Atlas GUI, add the following line of code:
 ```python
-train_data = np.load('/data/train_data.npz', allow_pickle=True)
+foundations.set_tensorboard_logdir('tflogs')
 ```
-More details of how it will work inside Foundations Atlas are provided under the `Configuration` section below in this document.
+
 
 ## Logging Metrics and Parameters
 
@@ -169,18 +168,18 @@ foundations.save_artifact('trained_model.h5', key='trained_model')
 ```
 to the end of `main.py`.
 
-## TensorBoard Integration 
 
+## Run Foundations
 
-<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful data visualization tool that makes visualizing your training extremely easy. Foundations Atlas has full TensorBoard integration. 
+Now go back to the `Image-segmentation-tutorial` folder and run the same foundations submit command in the terminal as above i.e. `foundations submit scheduler . code/main.py`
 
-```python
-# Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
-```
-After above line, to access TensorBoard directly from the Atlas GUI, add the following line of code:
-```python
-foundations.set_tensorboard_logdir('tflogs')
-```
+This time you will see that the job metrics, artifacts and tensorboard are shown in the GUI. 
+
+## Code Reproducibility
+
+Atlas automatically provides you with the code reproducbility:
+You can reproduce your code for any job at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just `cd ~/.foundations/job_data/archive/your_atlas_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
+
 
 ## (Optional) Build Docker Image
 
@@ -226,7 +225,20 @@ Note: If you don't want to use the custom docker image, you can just comment out
 
 Make sure to give right path of your data folder as shown below:
 
-Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the Foundations Atlas docker container.
+Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the Foundations Atlas docker container. In order to obtain your absolute data path, you can `cd data` and then type `pwd` in the terminal
+
+## Data Directory
+
+It is always good practice to only package the code and not the data for every job. This is to prevent excessive usage of your computer's storage. 
+```python
+train_data = np.load('./data/train_data.npz', allow_pickle=True)
+```
+Replace the above block where the `train_data.npz` is loaded with the line below:
+```python
+train_data = np.load('/data/train_data.npz', allow_pickle=True)
+```
+More details of how it will work inside Foundations Atlas are provided under the `Configuration` section below in this document.
+
 
 ## Run with full features of foundations atlas
 
@@ -300,7 +312,6 @@ Validation accuracy | Validation loss
 
 </p>
 </details>
-
 
 
 ## Running a Hyperparameter Search

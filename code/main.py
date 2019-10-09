@@ -40,6 +40,8 @@ OUTPUT_CHANNELS = 3
 EPOCHS = hyper_params['epochs']
 VALIDATION_STEPS = 50 // BATCH_SIZE
 
+# TODO Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
+
 # Define summary writers for Tensorboard
 train_log_dir = 'tflogs/gradient_tape/' + '/train'
 test_log_dir = 'tflogs/gradient_tape/' + '/test'
@@ -50,9 +52,9 @@ tf.summary.experimental.set_step(1)
 
 print("loading the dataset for the job")
 
+# To load the dataset from inside a Docker image, change the path to '/data/train_data.npz' below (i.e. remove the '.')
 train_data = np.load('./data/train_data.npz', allow_pickle=True)
-# To load the dataset from inside a Docker image, replace the above line with:
-# train_data = np.load('/data/train_data.npz', allow_pickle=True)
+
 train_images = train_data['images']
 train_masks = train_data['masks']
 
@@ -220,9 +222,6 @@ class DisplayCallback(tf.keras.callbacks.Callback):
 
 callbacks.append(DisplayCallback())
 
-# TODO Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
-
-
 # tb = tf.keras.callbacks.TensorBoard(log_dir='tflogs', write_graph=True, write_grads=True, histogram_freq=1)
 es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, min_delta=0.0001,
                                       verbose=1)
@@ -261,7 +260,7 @@ def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, c
 
             for grad, trainable_variable in zip(grads, model.trainable_variables):
                 with train_summary_writer.as_default():
-                    tf.summary.histogram(f'grad_{trainable_variable.name}', grad)
+                    tf.summary.histogram(f'grad_{trainable_variable.name}', grad, epoch)
 
             opt.apply_gradients(zip(grads, model.trainable_weights))
 
@@ -278,8 +277,8 @@ def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, c
         train_loss_results.append(epoch_loss_avg.result())
         train_accuracy_results.append(epoch_accuracy.result())
         with train_summary_writer.as_default():
-            tf.summary.scalar('training_loss', epoch_loss_avg.result())
-            tf.summary.scalar('training_acc', epoch_accuracy.result())
+            tf.summary.scalar('training_loss', epoch_loss_avg.result(), epoch)
+            tf.summary.scalar('training_acc', epoch_accuracy.result(), epoch)
 
         epoch_loss_avg = tf.keras.metrics.Mean()
         epoch_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
@@ -297,8 +296,8 @@ def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, c
         validation_loss_results.append(epoch_loss_avg.result())
         validation_accuracy_results.append(epoch_accuracy.result())
         with test_summary_writer.as_default():
-            tf.summary.scalar('validation_loss', epoch_loss_avg.result())
-            tf.summary.scalar('validation_acc', epoch_accuracy.result())
+            tf.summary.scalar('validation_loss', epoch_loss_avg.result(), epoch)
+            tf.summary.scalar('validation_acc', epoch_accuracy.result(), epoch)
 
         # use existing callbacks
         show_predictions(name=f'epoch_{epoch + 1}')
