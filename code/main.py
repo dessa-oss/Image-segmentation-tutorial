@@ -30,6 +30,8 @@ hyper_params = {'batch_size': 16,
                 'decoder_neurons': [128, 64, 32, 16]
                 }
 
+# TODO Add foundations.log_params(hyper_params)
+
 # Define some job paramenters
 TRAIN_LENGTH = 200
 TEST_LENGTH = 50
@@ -52,7 +54,7 @@ tf.summary.experimental.set_step(1)
 
 print("loading the dataset for the job")
 
-# To load the dataset from inside a Docker image, change the path to '/data/train_data.npz' below (i.e. remove the '.')
+# To mount the data inside the Docker container without packaging it, change the path to '/data/train_data.npz' below (i.e. remove the '.')
 train_data = np.load('./data/train_data.npz', allow_pickle=True)
 
 train_images = train_data['images']
@@ -111,7 +113,6 @@ train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE
 test_dataset = test.batch(BATCH_SIZE)
 
 
-# TODO Add foundations artifact i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
 def display(display_list, name=None):
     plt.figure(figsize=(15, 15))
 
@@ -123,6 +124,8 @@ def display(display_list, name=None):
         plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
         plt.axis('off')
     plt.savefig(f"sample_{name}.png")
+    # TODO Add foundations artifact i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+
     # plt.show()
 
 

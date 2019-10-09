@@ -90,18 +90,17 @@ Notice that you didn't need to install any other packages to run your job becaus
 You can also check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
 
 Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas. 
-## Full Atlas Features
-The full Atlas features include: 
-1. Automatic environment creation for jobs
-1. Use of custom docker images to avoid replicating download of packages
-1. Experiment tracking via GUI to monitor various jobs
-1. Code reproducibility for different experiments
-1. Automatic job scheduling which run in the background
-1. Live logs for any running jobs and saved logs for finished or failed jobs
-1. Hyperparameter search to create better ML models
-1. Track job performance via job parameters and metrics
-1. Save any objects such as images, audio, video corresponding to any job and view inside GUI
-1. Tensorboard integration to analyze deep ML models
+## Atlas Features
+The Atlas features include: 
+1. Experiment reproducibility
+1. Monitor various jobs status (i.e. running, killed etc.) from GUI
+1. View job metrics alongside hyperparameters in the GUI
+1. Save and view from the GUI any artifacts such as images, audio or video
+1. Automatic job scheduling
+1. Live logs for any running jobs and saved logs for finished or failed jobs are accessible from the GUI
+1. Hyperparameter search
+1. Tensorboard integration to analyze deep learning models
+1. Supports running jobs in docker containers
 
 
 ## How to Enable Full Atlas Features
@@ -116,6 +115,61 @@ To enable Atlas features, we only to need to make a few changes. To begin using 
 import foundations
 ```
 
+## Logging Metrics and Parameters
+
+Any job parameters can be logged in the GUI using foundations.log_params() which accepts key-value pairs.
+Look for the comment:
+
+```python
+# TODO Add foundations.log_params(hyper_params)
+```
+
+replace this with:
+```python
+foundations.log_params(hyper_params)
+
+```
+
+Here, `hyper_params` is a dictionary in which keys are parameter names and values are parameter values.
+
+The last line of `main.py` outputs the training and validation accuracy. After these statements, we will call the function `foundations.log_metric()`.This function takes two arguments, a key and a value. After the function call has been added,  once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
+
+Look for the comment:
+
+```python
+# TODO Add foundations log_metrics here
+```
+replace this line with the lines below:
+```python
+foundations.log_metric('train_accuracy', float(train_acc))
+foundations.log_metric('val_accuracy', float(val_acc))
+```
+
+## Saving Artifacts
+
+We want to monitor the progress of our model while training by looking at the predicted masks for a given training image. With Atlas, we can save any artifact such as images, audio, video or any other files to the GUI with just one line.
+
+Look for the comment:
+```python
+# TODO Add foundations artifact i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+```
+and replace it with:
+```python
+foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
+```
+Moreover, you can save the trained model as an artifact in GUI.
+
+Look for the comment:
+```python
+# TODO Add foundations save_artifacts here to save the trained model
+```
+and replace it with:
+
+```python
+foundations.save_artifact('trained_model.h5', key='trained_model')
+```
+This will allow you to download the trained model corresponding to any experiment directly from GUI.
+
 ## TensorBoard Integration 
 
 
@@ -124,56 +178,18 @@ import foundations
 ```python
 # Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 ```
-After above line, to access TensorBoard directly from the Atlas GUI, add the following line of code:
+Replace this line with
 ```python
 foundations.set_tensorboard_logdir('tflogs')
 ```
+to access TensorBoard directly from the Atlas GUI.
 
 
-## Logging Metrics and Parameters
+## Run Foundations Atlas
 
-The last line of main.py outputs the training and validation accuracy. After these statements, we will call to the function `foundations.log_metric()`.This function takes two arguments, a key and a value. Once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
+Congrats! Now you enabled full Atlas features in your code.
 
-```python
-model.save("trained_model.h5")
-
-# Add foundations log_metrics here
-```
-
-after above lines in `main.py` add:
-
-```python
-foundations.log_metric('train_accuracy', float(train_acc))
-foundations.log_metric('val_accuracy', float(val_acc))
-
-# track hyperparameters
-foundations.log_params(hyper_params)
-
-```
-
-## Saving Artifacts
-
-We have created graphs for test samples. With Atlas, we can save any artifact to the GUI with just one line. Add the following lines to send the locally saved plot to the Atlas GUI.
- ```python
-    plt.savefig(f"sample_{name}.png")
- ``` 
- after the above line in `main.py`, add below line:
-```python
-foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
-```
-Moreover, you can save trained model by adding below
-
-```python
-foundations.save_artifact('trained_model.h5', key='trained_model')
-```
-to the end of `main.py`.
-
-
-## Run Foundations
-
-Now go back to the `Image-segmentation-tutorial` folder and run the same foundations submit command in the terminal as above i.e. `foundations submit scheduler . code/main.py`
-
-This time you will see that the job metrics, artifacts and tensorboard are shown in the GUI. 
+Now run the same command as you ran previously i.e. `foundations submit scheduler . code/main.py` from the `Image-segmentaion-tutorial` directory. This time you will see that the job metrics, artifacts and tensorboard are shown in the GUI. 
 
 ## Code Reproducibility
 
@@ -237,7 +253,7 @@ Replace the above block where the `train_data.npz` is loaded with the line below
 ```python
 train_data = np.load('/data/train_data.npz', allow_pickle=True)
 ```
-More details of how it will work inside Foundations Atlas are provided under the `Configuration` section below in this document.
+More details of how it will work inside Foundations Atlas are provided under the `Configuration` section above in this document.
 
 
 ## Run with full features of foundations atlas
