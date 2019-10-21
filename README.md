@@ -81,7 +81,9 @@ Make sure that `train_data.npz` is under `Image-segmentation-tutorial/data`, oth
 
 ## Start Atlas
 
-Skip this if you are using the Atlas CE AMI. Otherwise activate the conda environment in which Foundations Atlas is installed (by running `conda activate your_env` inside terminal). Then if you are using a machine without a GPU, run `atlas-server start` in a new tab terminal, otherwise, run `atlas-server start -g`. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
+Skip this if you are using the Atlas CE AMI. Otherwise activate the conda environment in which Foundations Atlas is installed (by running `conda activate your_env` inside terminal). Then if you are using a machine without a GPU, run `atlas-server start` in a new tab terminal, otherwise, run `atlas-server start -g`. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>. 
+
+If you are using cloud, GUI should already be accessible at `http://<instance_IP>:5555/projects` instead.
 
 ## Running a job
 
@@ -89,23 +91,20 @@ Activate the environment in which you have Foundations Atlas installed (if you a
 ```python
 foundations submit scheduler . code/main.py
 ```
-Notice that you didn't need to install any other packages to run your job because Foundations already take care of it.
-
-You can also check the logs of your job by clicking the expand button on the right end of the job row in the GUI where you can check the performance of this job by checking the logs.
+Notice that you didn't need to install any other packages to run your job because Foundations already take care of it. This is ensured by the fact that you have a `requirements.txt` file in your main directory that specifies the python packages needed by your project. Foundations Atlas makes use of that file to install your requirements before executing your codebase. If you take a look at Atlas dashboard, you can see basic information about the ran job such as start time, its status or its job ID. You can also check the logs of your job by clicking the expand button on the right end of the job row of each job.
 
 Congrats! Your code is now tracked by Foundations Atlas! Let's move on to explore the magic of Atlas. 
 ## Atlas Features
 The Atlas features include: 
 1. Experiment reproducibility
-1. Monitor various jobs status (i.e. running, killed etc.) from GUI
-1. View job metrics alongside hyperparameters in the GUI
-1. Save and view from the GUI any artifacts such as images, audio or video
-1. Automatic job scheduling
-1. Live logs for any running jobs and saved logs for finished or failed jobs are accessible from the GUI
-1. Hyperparameter search
-1. Tensorboard integration to analyze deep learning models
-1. Supports running jobs in docker containers
-
+2. Various jobs status monitoring (i.e. running, killed etc.) from GUI
+3. Job metrics and hyperparameters analysis in the GUI
+4. Saving and viewing of any artifacts such as images, audio or video from the GUI
+5. Automatic job scheduling
+6. Live logs for any running jobs and saved logs for finished or failed jobs are accessible from the GUI
+7. Hyperparameter search
+8. Tensorboard integration to analyze deep learning models
+9. Running jobs in docker containers
 
 ## How to Enable Full Atlas Features
 
@@ -113,7 +112,7 @@ Inside the `code` directory, you are provided with the following python scripts:
 
 * main.py: a main script which prepares data, trains an U-net model, then evaluates the model on the test set.
 
-To enable Atlas features, we only to need to make a few changes. To begin using foundations atlas, add an import statement to the beginning of `main.py`:
+To enable Atlas features, we only to need to make a few changes. Let's start by importing foundations to the beginning of `main.py`, where we will make most of our changes:
 
 ```python
 import foundations
@@ -121,7 +120,9 @@ import foundations
 
 ## Logging Metrics and Parameters
 
-Any job parameters can be logged in the GUI using foundations.log_params() which accepts key-value pairs.
+When training machine learning models, it is always good practice to keep a record of the different architectures and parameters that were tried. Some example parameters are the number of layers, number of neurones per layer, dataset used or other parameters specific to the experiment.
+To do that, Atlas enables any job parameters to be logged in the GUI using `foundations.log_params()` which accepts key-value pairs.
+
 Look for the comment:
 
 ```python
@@ -136,7 +137,7 @@ foundations.log_params(hyper_params)
 
 Here, `hyper_params` is a dictionary in which keys are parameter names and values are parameter values.
 
-The last line of `main.py` outputs the training and validation accuracy. After these statements, we will call the function `foundations.log_metric()`.This function takes two arguments, a key and a value. After the function call has been added,  once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
+In addition to keeping track of an experiment parameters, it is also good practice to record the outcome of such experiment, typically called metrics. Some example metrics can be Accuracy, Precision or other scores useful for the analysis of the problem. In our case, the last line of `main.py` outputs the training and validation accuracy. After these statements, we will call the function `foundations.log_metric()`.This function takes two arguments, a key and a value. After the function call has been added,  once a job successfully completes, logged metrics for each job will be visible from the Foundations GUI. Copy the following line and replace the print statement with it.
 
 Look for the comment:
 
@@ -151,7 +152,7 @@ foundations.log_metric('val_accuracy', float(val_acc))
 
 ## Saving Artifacts
 
-We want to monitor the progress of our model while training by looking at the predicted masks for a given training image. With Atlas, we can save any artifact such as images, audio, video or any other files to the GUI with just one line.
+We want to monitor the progress of our model while training by looking at the predicted masks for a given training image. With Atlas, we can save any artifact such as images, audio, video or any other files to the GUI with just one line. It is worth noting that, in order to save artifact to Atlas dashboard, the artifact needs to be saved on disk first. The path of the file on disk is then used to log such artifacts to the GUI.
 
 Look for the comment:
 ```python
@@ -161,7 +162,7 @@ and replace it with:
 ```python
 foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
 ```
-Moreover, you can save the trained model as an artifact in GUI.
+Moreover, you can save the trained model checkpoint files as an artifact.
 
 Look for the comment:
 ```python
@@ -177,8 +178,8 @@ This will allow you to download the trained model corresponding to any experimen
 ## TensorBoard Integration 
 
 
-<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful data visualization tool that makes visualizing your training extremely easy. Foundations Atlas has full TensorBoard integration. 
-
+<a target="_blank" href="https://www.tensorflow.org/tensorboard/r1/summaries">TensorBoard</a> is a super powerful model visualization tool that makes the analysis of your training very easy. Luckily, Foundations Atlas has full TensorBoard integration. and only requires from the user to point to the folder where the user is saving his tensorboard 
+files.
 ```python
 # Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 ```
@@ -193,37 +194,39 @@ to access TensorBoard directly from the Atlas GUI.
 
 Congrats! Now you enabled full Atlas features in your code.
 
-Now run the same command as you ran previously i.e. `foundations submit scheduler . code/main.py` from the `Image-segmentaion-tutorial` directory. This time you will see that the job metrics, artifacts and tensorboard are shown in the GUI. 
+Now run the same command as you ran previously i.e. `foundations submit scheduler . code/main.py` from the `Image-segmentaion-tutorial` directory. This time, the job that we ran, holds a set of parameters used in the experiment, as well as the metrics representing the outcome of the experiment. More details about the job can be accessed via the expansion icon to the right of the row. The detail window includes job logs, as well as the artifacts saved along the experiment. It is also possible to add `tags` using the detail window to mark specific jobs.
+On another level, one can also select a job (row) for the jobs table in the GUI and `send to tensorboard` to benefit from all the features avaiable in TB. It is usually a smart idea to do an in depth analysis of models to understand where they fail. Please note that jobs for which tensorboard files where tracked by Atlas are marked with a tensorboard tag.
 
 ## Code Reproducibility
 
-Atlas automatically provides you with the code reproducbility:
-You can reproduce your code for any job at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just `cd ~/.foundations/job_data/archive/your_atlas_job_id_here/artifacts` where you can find the code corresponding to a job_id in order to reproduce your results. You can access the job_id of individual experiments via the GUI.
+You can recover your code for any job at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just execute 
+```bash
+foundations get job scheduler <job_id>
+``` 
+which will recover your experiment's bundle from the job store. You can access the job_id of individual experiments via the GUI.
 
 
 ## (Optional) Build Docker Image
 
-The motivation of building customized image is to avoid reinstalling packages listed in the requirements.txt repeatedly. Run the following command in the terminal:
+In previous runs, Foundations Atlas used to install the libraries inside `requirements.txt` everytime before executing the user's codebase. To avoid having such overhead at every new job, one might build a custom docker image that Foundations Atlas will use to run the experiments. Run the following command in the terminal:
 ```bash
 cd custom_docker_image
 docker build . --tag image_seg:atlas
 ```
-By doing this, you have created a docker image named `image_seg:atlas` on your local computer that conatins the python environment required to run this job.
+Since `customer_docker_image` folder already contains a `DockerFile` that would build a docker image that support both Foundations Atlas and the requirements of the project, you have created a docker image named `image_seg:atlas` on your local computer that contains the python environment required to run this job.
 
 
 ### Running with the Built Docker Image: Configuration
 
-The configuration file should be created to specify additional settings for any Foundations Atlas job. 
+In Atlas, it is possible to create a configuration job in your working directory that specifies some base information about all jobs you want to run. Such information can be the project name (defaults to directory name when non-existent), the level of log to receive, number of GPUs to use per job, or the docker image to use for every job. 
 Below is an example of configuration file that you can use for this project.
 
 First, create a file named `job.config.yaml` inside `code` directory, and copy the text from below into the file. 
 
-You can specify project name, docker images in this configuration. 
-
-Benefit from last `Build Docker Image` option, you have already build `image_seg:atlas`. 
+We will also make use of the docker image we have already built `image_seg:atlas`
 
 
-```python
+```yaml
 # Project config #
 project_name: 'Image-segmentation-tutorial'
 log_level: INFO
@@ -241,15 +244,15 @@ worker:
       mode: rw
 ```
 
-Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. In this case, Foundations Atlas will use a default docker image and will automatically create the required enviornment for the each job seperately (this may take relatively longer time if your job needs a lot of packages to be installed).
+Note: If you don't want to use the custom docker image, you can just comment out or just delete the whole `image` line inside `worker` section of this config file shown above. 
 
 Make sure to give right path of your data folder as shown below:
 
-Under the `volumes` section, you will need to replace `/local/path/to/folder/containing/data` with your local absolute path of data folder so that your data can be accessed within the Foundations Atlas docker container. In order to obtain your absolute data path, you can `cd data` and then type `pwd` in the terminal
+Under the `volumes` section, you will need to replace `/absolute/path/to/folder/containing/data` with your host absolute path of data folder so that your data volume is mounted inside the Foundations Atlas docker container. In order to obtain your absolute data path, you can `cd data` and then run `pwd` in the terminal.
 
 ## Data Directory
 
-It is always good practice to only package the code and not the data for every job. This is to prevent excessive usage of your computer's storage. 
+Since we will mount our data folder from the host to the container, we need to change the data path appropriately inside our codebase.
 ```python
 train_data = np.load('./data/train_data.npz', allow_pickle=True)
 ```
@@ -260,7 +263,7 @@ train_data = np.load('/data/train_data.npz', allow_pickle=True)
 More details of how it will work inside Foundations Atlas are provided under the `Configuration` section above in this document.
 
 
-## Run with full features of foundations atlas
+## Run with full features of Foundations Atlas
 
 Go inside the `code`directory and run the command below in your terminal (make sure you are in the foundations enviornment).
 ```python
@@ -304,14 +307,15 @@ Validation accuracy | Validation loss
 
 
 Modern architectures often benefit from skip connections and appropriate activation functions to avoid the vanishing gradients problem.
-Looking at the function `main.py/unet_model` reveals that the skip connections are not properly implemented. 
+Looking at the function `main.py/unet_model` reveals that the skip connections was not implemented, which prevents the gradient from finding an easy way back to the input layer (thus the gradient vanish).
+
 After the line `x = up(x)` add the below lines to fix this:
 ```
 concat = tf.keras.layers.Concatenate()
 x = concat([x, skip])
 ```
 
-Another problem in the model is the usage of the sigmoid in the function `pix2pix.py/upsample`:
+Another problem in the model is the usage of the sigmoid in the function `pix2pix.py/upsample` which is prone to saturation if the outputs pre-activation are of high absolute values. An easy, yet practical solution would be to replace the sigmoid activation functions with ReLu activations:
 ```
 result.add(tf.keras.layers.Activation('sigmoid'))
 ```
@@ -363,9 +367,9 @@ for job_ in range(NUM_JOBS):
                        stream_job_logs=False)
 ```
 
-This script samples hyperparameters uniformly from pre-defined ranges, then submits jobs using those hyperparameters. For a script that exerts more control over the hyperparameter sampling, check the end of the tutorial. The job execution code is still coming from main.py; i.e. each experiment is submitted to and ran with the script.
+This script samples hyperparameters uniformly from pre-defined ranges, then submits jobs using those hyperparameters. For a script that exerts more control over the hyperparameter sampling, check the end of the tutorial. The job execution code is still coming from main.py; i.e. each experiment is submitted to and run with the script.
 
-In order to get this to work, a small modification needs to be made to main.py. In the code block where the hyperparameters are defined (indicated by the comment 'define hyperparameters'), we'll load the sampled hyperparameters instead of defining a fixed set of hyperparameters explictely.
+In order to get this to work, a small modification needs to be made to main.py. In the code block where the hyperparameters are defined (indicated by the comment 'define hyperparameters'), we'll load the sampled hyperparameters instead of defining a fixed set of hyperparameters explicitly.
 
 ```python
 # define hyperparameters: Replace hyper_params by foundations.load_parameters()
@@ -384,10 +388,22 @@ Now, to run the hyperparameter search, from the `code` directory simply run:
 python hyperparameter_search.py
 ```
 
-## Congrats!
-That's it! You've completed the Foundations Atlas Tutorial. Now, you should be able to go to the <a target="_blank" href="http://localhost:5555/projects">GUI</a> and see your running and completed jobs, compare model hyperparameters and performance, as well as view artifacts and training visualizations on TensorBoard.
+By looking at the GUI, one might notice that some jobs are running, some others are maybe finished, while some others are still queued and waiting for resources to become available before starting to run.
 
-Do you have any thoughts or feedback for Foundations Atlas? Join the [Dessa Slack community](https://u12604448.ct.sendgrid.net/wf/click?upn=FWkFK8jQsWHHe3Zs0Gq5lTVfVJ15gKBcKJ8U8683-2FgbxDO0AKr58M46HvgnHq5gu7wxIxP578G4skYZ0QeDgMvlsnXObXuf729kfmWrTshGGl6TUN1-2FFyXqmyrD5ZoV-2FZRo0hnw3InKzQzFwqlF1quZt7VDueDH-2FEBH340YEI-2BzPVPIYVXfgn1PnGl8fkLCnbYCd3y-2FE9USkbXAlUUrS32M6lVOa8yh3Zx0NI6a4qqpVFMxksNDun1d3ARH2OSPbpz1vHZKPFnXOfLxXECu8PNhWW7f7-2FVoNinol6t-2BZkEIwfKAjbZI9cZRHYLkxGcq1fsHpXGYBb2nNHtUGC77Lo19RTjhUG7juCEF34X3kF4WvYGqy5xbhbLBL1VsCLH-2BckvPQvF-2Bungthb9Y9DVEIIY4DrphpWV2nxMH57ReudsB-2FoUEtHc18-2BSR84JprF1rfenfH4JeL2dr9DuunbkWvOph-2FkBza8U6YjdxtyfjjfJcoBacw-2B-2BmL6u6HWVn6M95UMOlfqzhF9cb-2FtspPAta5-2FN-2FXlygoZptG74-2B1qYgqeJKdfs8NNbZ21inPrj7an6r1nYNW4YC2xhFyLU2xQsBqtA-3D-3D_HUWHbgbBidglsEUmLbxZPG73zbI-2FXxUPQjCzMJWkdroEX4ThZ-2Ba-2FJdu8bhCG1wcvpbbfZo-2BiSSdhtu4tG6XMtkBL8Zae-2BGEwDN3szVNiE30Om1ynfKmNpOylsSRYgejDusVxPEBpP9-2FS7hlC9E8wo2TuFuHrlbl22LkB75K0wEtiJO0c2mViU1HaEmPEzBLCHXf0Y9-2BfRiS6YpAx89cMJwZ-2FMdDGn6VZ5J9E7sIA7uLAld9W8Xdng7daA-2B1UUesrCZrB378tYyV8RbFvAnAvAn08hSekPk-2B-2BE6Anb5HnHs8XDTwPMX7sPvViiOeXxCyHWzYDvS-2FTwddaZaPC2CL8lnQwdSWGGaDm1qQRQMv8W5CeeQbMj4Y4afLIpw6ujHEv9wrMcqEQ8WLNT0YmT8mXDJ-2FdsCQq8geKsHq4T8tWttr00sD8cyI7bWpNHnj05w2jgR0MVnuB3iWDUw-2F8P3yPB2-2BxfA34jXuxFn-2B30bf-2FOnkNcu-2B-2B0UeWmzxmjZyvxCXpjPvurewqGr-2Fpcx78JUfAHaFKyRorhoDV8yvd85XK-2BJ6vyGuwZ1wrEDBJTsE-2BGedJ)!
+It is however important to notice some key features that Atlas provides to make the hyperparameters search analysis easier:
+
+- Sort parameters and metrics by value
+- Filter out unwanted metrics/parameters to avoid information overflow in the GUI
+- Parallel Coordinates Plot: A highly interactive plot that shows the correlation between parameters and metrics, or even the correlation between a set of 
+metrics. It is possible to interact with the plot in real time to either select certain parameters/metrics, or to select specific jobs based on a range of 
+metric values/parameter values. As such, one can easily detect the optimal parameters that contribute to the best metric values.
+- Multi-job tensorboard comparison: It is very important to do an in-depth comparison of multiple different jobs using tensorboard to figure out the 
+advantages and limitations of every architecture, as well as build an intuition about the required model type/complexity to solve the problem at hand.
+
+## Congrats!
+That's it! You've completed the Image Segmentation Tutorial using Foundations Atlas CE! 
+
+Do you have any thoughts or feedback for Foundations Atlas? Join the [Dessa Slack community](https://u12604448.ct.sendgrid.net/wf/click?upn=FWkFK8jQsWHHe3Zs0Gq5lTVfVJ15gKBcKJ8U8683-2FgbxDO0AKr58M46HvgnHq5gu7wxIxP578G4skYZ0QeDgMvlsnXObXuf729kfmWrTshGGl6TUN1-2FFyXqmyrD5ZoV-2FZRo0hnw3InKzQzFwqlF1quZt7VDueDH-2FEBH340YEI-2BzPVPIYVXfgn1PnGl8fkLCnbYCd3y-2FE9USkbXAlUUrS32M6lVOa8yh3Zx0NI6a4qqpVFMxksNDun1d3ARH2OSPbpz1vHZKPFnXOfLxXECu8PNhWW7f7-2FVoNinol6t-2BZkEIwfKAjbZI9cZRHYLkxGcq1fsHpXGYBb2nNHtUGC77Lo19RTjhUG7juCEF34X3kF4WvYGqy5xbhbLBL1VsCLH-2BckvPQvF-2Bungthb9Y9DVEIIY4DrphpWV2nxMH57ReudsB-2FoUEtHc18-2BSR84JprF1rfenfH4JeL2dr9DuunbkWvOph-2FkBza8U6YjdxtyfjjfJcoBacw-2B-2BmL6u6HWVn6M95UMOlfqzhF9cb-2FtspPAta5-2FN-2FXlygoZptG74-2B1qYgqeJKdfs8NNbZ21inPrj7an6r1nYNW4YC2xhFyLU2xQsBqtA-3D-3D_HUWHbgbBidglsEUmLbxZPG73zbI-2FXxUPQjCzMJWkdroEX4ThZ-2Ba-2FJdu8bhCG1wcvpbbfZo-2BiSSdhtu4tG6XMtkBL8Zae-2BGEwDN3szVNiE30Om1ynfKmNpOylsSRYgejDusVxPEBpP9-2FS7hlC9E8wo2TuFuHrlbl22LkB75K0wEtiJO0c2mViU1HaEmPEzBLCHXf0Y9-2BfRiS6YpAx89cMJwZ-2FMdDGn6VZ5J9E7sIA7uLAld9W8Xdng7daA-2B1UUesrCZrB378tYyV8RbFvAnAvAn08hSekPk-2B-2BE6Anb5HnHs8XDTwPMX7sPvViiOeXxCyHWzYDvS-2FTwddaZaPC2CL8lnQwdSWGGaDm1qQRQMv8W5CeeQbMj4Y4afLIpw6ujHEv9wrMcqEQ8WLNT0YmT8mXDJ-2FdsCQq8geKsHq4T8tWttr00sD8cyI7bWpNHnj05w2jgR0MVnuB3iWDUw-2F8P3yPB2-2BxfA34jXuxFn-2B30bf-2FOnkNcu-2B-2B0UeWmzxmjZyvxCXpjPvurewqGr-2Fpcx78JUfAHaFKyRorhoDV8yvd85XK-2BJ6vyGuwZ1wrEDBJTsE-2BGedJ) and do share your own projects that benefit from Foundation Atlas CE!
 
 
 ## References
