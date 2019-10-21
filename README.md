@@ -211,7 +211,7 @@ which will recover your experiment's bundle from the job store. You can access t
 In previous runs, Foundations Atlas used to install the libraries inside `requirements.txt` everytime before executing the user's codebase. To avoid having such overhead at every new job, one might build a custom docker image that Foundations Atlas will use to run the experiments. Run the following command in the terminal:
 ```bash
 cd custom_docker_image
-docker build . --tag image_seg:atlas
+nvidia-docker build . --tag image_seg:atlas
 ```
 Since `customer_docker_image` folder already contains a `DockerFile` that would build a docker image that support both Foundations Atlas and the requirements of the project, you have created a docker image named `image_seg:atlas` on your local computer that contains the python environment required to run this job.
 
