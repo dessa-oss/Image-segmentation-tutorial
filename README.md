@@ -81,7 +81,7 @@ Make sure that `train_data.npz` is under `Image-segmentation-tutorial/data`, oth
 
 ## Start Atlas
 
-Skip this if you are using the Atlas CE AMI. Otherwise activate the conda environment in which Foundations Atlas is installed (by running `conda activate your_env` inside terminal). Then run if you are using a machine without a GPU, run `atlas-server start` in a new tab terminal, otherwise, run `atlas-server start -g`. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
+Skip this if you are using the Atlas CE AMI. Otherwise activate the conda environment in which Foundations Atlas is installed (by running `conda activate your_env` inside terminal). Then if you are using a machine without a GPU, run `atlas-server start` in a new tab terminal, otherwise, run `atlas-server start -g`. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
 
 ## Running a job
 
@@ -198,7 +198,7 @@ Now run the same command as you ran previously i.e. `foundations submit schedule
 ## Code Reproducibility
 
 Atlas automatically provides you with the code reproducbility:
-You can reproduce your code for any job at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just `cd ~/.foundations/job_data/archive/your_atlas_job_id_here/artifacts` where you can find the code corresponding to a job-id in order to reproduce your results. 
+You can reproduce your code for any job at any time later in the future. In order to recover the code corresponding to any Foundations Atlas job_id, just `cd ~/.foundations/job_data/archive/your_atlas_job_id_here/artifacts` where you can find the code corresponding to a job_id in order to reproduce your results. You can access the job_id of individual experiments via the GUI.
 
 
 ## (Optional) Build Docker Image
