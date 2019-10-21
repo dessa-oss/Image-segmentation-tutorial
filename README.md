@@ -52,9 +52,9 @@ The dataset that will be used for this tutorial is the <a target="_blank" href="
 * Class 2 : Pixel bordering the pet.
 * Class 3 : None of the above/ Surrounding pixel.
 
-Download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz).
+If you have already cloned this repo, download the processed data [here](https://dl-shareable.s3.amazonaws.com/train_data.npz).
 
-Paste the downloaded file named `train_data.npz` under the `data` directory of Image-segmentation-tutorial project.
+Paste the downloaded file named `train_data.npz` under the `data` directory of Image-segmentation-tutorial project. Otherwise, follow the instructions under `Clone the Tutorial`.
 
 <img src='images/data.png' width=70%>
 
@@ -69,19 +69,23 @@ As mentioned, the encoder will be a pretrained MobileNetV2 model which is prepar
 In the following sections, we will describe how to use this repository and train your own image-segmentation ML model in just a few steps.
 ## Clone the Tutorial
 
-Clone this repository by running:
+Skip this if you are using the Atlas CE AMI. Clone this repository by running:
 ```bash
 git clone https://github.com/dessa-public/Image-segmentation-tutorial.git
 ```
 and then type `cd Image-segmentation-tutorial` in the terminal to make this your current directory.
 
+## Download the Data
+Make sure that `train_data.npz` is under `Image-segmentation-tutorial/data`, otherwise, run:
+```cd data; wget https://dl-shareable.s3.amazonaws.com/train_data.npz; cd ..```
+
 ## Start Atlas
 
-Activate the conda environment in which Foundations Atlas is installed (by running `conda activte your_env` inside terminal). Then run `atlas-server start` in a new tab terminal. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
+Skip this if you are using the Atlas CE AMI. Otherwise activate the conda environment in which Foundations Atlas is installed (by running `conda activate your_env` inside terminal). Then run if you are using a machine without a GPU, run `atlas-server start` in a new tab terminal, otherwise, run `atlas-server start -g`. Validate that the GUI has been started by accessing it at <a target="_blank" href="http://localhost:5555/projects">http://localhost:5555/projects</a>.
 
 ## Running a job
 
-Activate the environment in which you have Foundations Atlas installed, then from inside the project directory (Image-segmentation-tutorial) run the following command:
+Activate the environment in which you have Foundations Atlas installed (if you are using the Atlas CE AMI, it should already be activated), then from inside the project directory (Image-segmentation-tutorial) run the following command:
 ```python
 foundations submit scheduler . code/main.py
 ```
@@ -316,7 +320,7 @@ Modify this line as below:
 result.add(tf.keras.layers.ReLU())
 ```
 Running another job with these changes results in a significantly higher accuracy, with below gradient plots, 
-where the first upsample (`conv2d_transpose_4x4_to_8x8` under `grad_sequential`) layer has a range of gradients between 125 and -125 (300x greater now in magnitude!):
+where the first upsample (`conv2d_transpose_4x4_to_8x8` under `grad_sequential`) layer has a significantly larger range of gradients:
 
 Final upsample layer       |   Previous layers | ..  | First upsample layer| 
 :-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
