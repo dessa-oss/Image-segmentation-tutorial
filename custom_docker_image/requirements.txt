@@ -10,7 +10,7 @@ google-auth-httplib2==0.0.3
 google-cloud-storage==1.10.0
 PyYAML==5.1.2
 pysftp==0.2.8
-paramiko==2.4.1
+paramiko==2.4.2
 mock==2.0.0
 freezegun==0.3.8
 boto3==1.9.86
