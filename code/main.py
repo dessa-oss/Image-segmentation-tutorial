@@ -16,21 +16,17 @@ from PIL import Image
 
 sys.modules['Image'] = Image
 
-# TODO import foundations here
-
 if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 
 print("getting hyper parameters for the job")
-# define hyperparameters: Replace hyper_params by foundations.load_parameters()
 hyper_params = {'batch_size': 16,
                 'epochs': 10,
                 'learning_rate': 0.0001,
                 'decoder_neurons': [128, 64, 32, 16]
                 }
 
-# TODO Add foundations.log_params(hyper_params)
 
 # Define some job paramenters
 TRAIN_LENGTH = 200
@@ -42,7 +38,6 @@ OUTPUT_CHANNELS = 3
 EPOCHS = hyper_params['epochs']
 VALIDATION_STEPS = 50 // BATCH_SIZE
 
-# TODO Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
 
 # Define summary writers for Tensorboard
 train_log_dir = 'tflogs/gradient_tape/' + '/train'
@@ -124,9 +119,6 @@ def display(display_list, name=None):
         plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
         plt.axis('off')
     plt.savefig(f"sample_{name}.png")
-    # TODO Add foundations artifact i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
-
-    # plt.show()
 
 
 for image, mask in train.take(1):
@@ -330,7 +322,3 @@ print(f'train loss: {train_loss}, train accuracy: {train_acc},'
 
 model.save("trained_model.h5")
 
-# TODO Add foundations log_metrics here
-
-
-# TODO Add foundations save_artifacts here to save the trained model
