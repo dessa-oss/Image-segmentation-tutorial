@@ -11,5 +11,5 @@ worker:
   image: ranasac/image_segmentation:gpu  # name of your customized images
   volumes:
     /home/ubuntu/atlas_tutorials/Image-segmentation-tutorial/data:     # change this path to your absolute local path of data folder
-      bind: /data/
+      bind: /data
       mode: rw

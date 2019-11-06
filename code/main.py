@@ -16,13 +16,13 @@ from PIL import Image
 import subprocess
 import yaml
 
-with open("./code/job.config.yaml", "r") as f:
+with open("job.config.yaml", "r") as f:
     config_file = yaml.safe_load(f)
 
 absolute_data_path = list(config_file["worker"]["volumes"].values())[0]['bind']
 
-if not os.path.isfile(os.path.join(f'{absolute_data_path},train_data.npz')):
-    subprocess.call([f"wget https://dl-shareable.s3.amazonaws.com/train_data.npz -P {absolute_data_path}"])
+if not os.path.isfile(os.path.join(f'{absolute_data_path}','train_data.npz')):
+    subprocess.call(f"wget https://dl-shareable.s3.amazonaws.com/train_data.npz -P {absolute_data_path}".split(" "))
 
 sys.modules['Image'] = Image
 
