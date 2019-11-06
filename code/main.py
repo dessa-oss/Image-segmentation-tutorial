@@ -13,10 +13,21 @@ from tensorflow.keras.losses import sparse_categorical_crossentropy
 tfds.disable_progress_bar()
 import matplotlib.pyplot as plt
 from PIL import Image
+import subprocess
+import yaml
+
+with open("./code/job.config.yaml", "r") as f:
+    config_file = yaml.safe_load(f)
+
+absolute_data_path = list(config_file["worker"]["volumes"].values())[0]['bind']
+
+if not os.path.isfile(os.path.join(f'{absolute_data_path},train_data.npz')):
+    subprocess.call([f"wget https://dl-shareable.s3.amazonaws.com/train_data.npz -P {absolute_data_path}"])
 
 sys.modules['Image'] = Image
 
 # TODO import foundations here
+import foundations
 
 if os.environ.get('DISPLAY', '') == '':
     print('no display found. Using non-interactive Agg backend')
@@ -24,13 +35,19 @@ if os.environ.get('DISPLAY', '') == '':
 
 print("getting hyper parameters for the job")
 # define hyperparameters: Replace hyper_params by foundations.load_parameters()
-hyper_params = {'batch_size': 16,
-                'epochs': 10,
-                'learning_rate': 0.0001,
-                'decoder_neurons': [128, 64, 32, 16]
-                }
 
-# TODO Add foundations.log_params(hyper_params)
+try:
+    hyper_params = foundations.load_parameters()
+except:
+    hyper_params = {'batch_size': 16,
+                    'epochs': 100,
+                    'learning_rate': 0.0001,
+                    'decoder_neurons': [128, 64, 32, 16]
+                    }
+    #
+    # # TODO Add foundations.log_params(hyper_params)
+    foundations.log_params(hyper_params)
+
 
 # Define some job paramenters
 TRAIN_LENGTH = 200
@@ -43,6 +60,7 @@ EPOCHS = hyper_params['epochs']
 VALIDATION_STEPS = 50 // BATCH_SIZE
 
 # TODO Add tensorboard dir for foundations here  i.e. foundations.set_tensorboard_logdir('tflogs')
+foundations.set_tensorboard_logdir('tflogs')
 
 # Define summary writers for Tensorboard
 train_log_dir = 'tflogs/gradient_tape/' + '/train'
@@ -55,7 +73,7 @@ tf.summary.experimental.set_step(1)
 print("loading the dataset for the job")
 
 # To mount the data inside the Docker container without packaging it, change the path to '/data/train_data.npz' below (i.e. remove the '.')
-train_data = np.load('./data/train_data.npz', allow_pickle=True)
+train_data = np.load('/data/train_data.npz', allow_pickle=True)
 
 train_images = train_data['images']
 train_masks = train_data['masks']
@@ -124,6 +142,7 @@ def display(display_list, name=None):
         plt.imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
         plt.axis('off')
     plt.savefig(f"sample_{name}.png")
+    foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
     # TODO Add foundations artifact i.e. foundations.save_artifact(f"sample_{name}.png", key=f"sample_{name}")
 
     # plt.show()
@@ -176,11 +195,13 @@ def unet_model(output_channels):
         x = skips[-1]
         skips = reversed(skips[:-1])
 
+    concat = tf.keras.layers.Concatenate()
     with tf.name_scope("decoder"):
         # Upsampling and establishing the skip connections
         for up, skip in zip(up_stack, skips):
             x = up(x)
             # Hint: Is something 'skipped'?
+            x = concat([x, skip])
 
         x = last(x)
 
@@ -191,6 +212,11 @@ model = unet_model(OUTPUT_CHANNELS)
 opt = tf.keras.optimizers.Adam(lr=hyper_params['learning_rate'])
 model.compile(optimizer=opt, loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
+
+checkpoint_path = '.'
+ckpt = tf.train.Checkpoint(model=model,
+                           optimizer=opt)
+ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=3)
 
 
 def create_mask(pred_mask):
@@ -247,7 +273,13 @@ def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, c
     validation_loss_results = []
     validation_accuracy_results = []
 
-    for epoch in range(epochs):
+    start_epoch = 0
+    if ckpt_manager.latest_checkpoint:
+        start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
+        ckpt.restore(ckpt_manager.latest_checkpoint)
+        print('Latest checkpoint restored#!#!')
+
+    for epoch in range(start_epoch,epochs):
         print('Start of epoch %d' % (epoch,))
         epoch_loss_avg = tf.keras.metrics.Mean()
         epoch_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
@@ -305,6 +337,8 @@ def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, c
         # use existing callbacks
         show_predictions(name=f'epoch_{epoch + 1}')
 
+        ckpt_manager.save()
+
     return train_loss_results, train_accuracy_results, validation_loss_results, validation_accuracy_results
 
 
@@ -331,6 +365,11 @@ print(f'train loss: {train_loss}, train accuracy: {train_acc},'
 model.save("trained_model.h5")
 
 # TODO Add foundations log_metrics here
+foundations.log_metric('train_accuracy', float(train_acc))
+foundations.log_metric('val_accuracy', float(val_acc))
+foundations.log_metric('train_loss', float(train_loss))
+foundations.log_metric('val_loss', float(validation_loss))
 
 
 # TODO Add foundations save_artifacts here to save the trained model
+foundations.save_artifact('trained_model.h5', key='trained_model')
