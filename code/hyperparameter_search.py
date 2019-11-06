@@ -2,7 +2,7 @@ import os
 import numpy as np
 import foundations
 
-NUM_JOBS = 1
+NUM_JOBS = 10
 
 def generate_params():
 
