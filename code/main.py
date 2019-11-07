@@ -16,6 +16,7 @@ from PIL import Image
 import subprocess
 import yaml
 
+
 with open("job.config.yaml", "r") as f:
     config_file = yaml.safe_load(f)
 
@@ -281,6 +282,7 @@ def train_with_gradient_tape(train_dataset, validation_dataset, model, epochs, c
 
     for epoch in range(start_epoch,epochs):
         print('Start of epoch %d' % (epoch,))
+        sys.stdout.flush()
         epoch_loss_avg = tf.keras.metrics.Mean()
         epoch_accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
         max_train_step = float(TRAIN_LENGTH) / BATCH_SIZE
