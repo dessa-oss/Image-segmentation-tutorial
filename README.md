@@ -5,6 +5,9 @@
 
 
 # Start Guide
+## Warning! 
+This branch is modified to demonstrate Atlas preemption support with ease. Please pick the cloud option, and then simply `cd atlas_tutorials/Image-segmentation-tutorial/code` and run `python hyperparameter_search.py` to instantly submit several jobs without the need to download data, or modify anything in the code. When your instance is preempted, if you bought preemption support for up to 8x cheaper cloud usage, Atlas will spin up a new instance, recover the completed, queued, and running jobs for you, and then continue running your jobs from their most recent checkpoints.
+
 ## Cloud option
 If you have an AWS account, try using our <a target="_blank" href="https://dessa-atlas-community-docs.readthedocs-hosted.com/en/latest/atlas-on-aws/">Atlas CE AMI</a> (publicly available Amazon Machine Image for Atlas).
 
