@@ -3,7 +3,7 @@ tqdm==4.33.0
 scipy==1.1.0
 matplotlib==2.2.3
 numpy==1.15.1
-tensorflow==2.0.0
+tensorflow==2.0.1
 scikit-learn
 tensorflow_datasets
 pillow
