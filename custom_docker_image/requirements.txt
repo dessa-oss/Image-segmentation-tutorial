@@ -23,7 +23,7 @@ docker==4.0.2
 tqdm==4.33.0
 scipy==1.1.0
 matplotlib==2.2.3
-tensorflow==2.0.1
+tensorflow==2.5.1
 scikit-learn
 tensorflow_datasets
 pillow
